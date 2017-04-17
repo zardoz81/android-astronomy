@@ -54,9 +54,13 @@ public class AstronomyActivity extends FragmentActivity {
             */
             astro = new AstroCalculator(new AstroDateTime(2017, 4, 17, 9, 19, 50, 2, false), new AstroCalculator.Location(51.3687535, 19.3564248));
             AstroCalculator.MoonInfo moonInfo= astro.getMoonInfo();
+            System.out.println(moonInfo.getMoonrise());
 
             SunFragment sunFragment = (SunFragment) getSupportFragmentManager().findFragmentById(R.id.sunFragment);
-            sunFragment.setText("Zmieniony tekscik");
+            sunFragment.refresh(astro.getSunInfo());
+
+            MoonFragment moonFragment = (MoonFragment) getSupportFragmentManager().findFragmentById(R.id.moonFragment);
+            moonFragment.refresh(astro.getMoonInfo());
         } else {
             /*
             astronomyPager = (ViewPager) findViewById(R.id.fragmentPager);

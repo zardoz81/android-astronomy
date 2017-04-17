@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.astrocalculator.AstroCalculator;
+import com.astrocalculator.AstroDateTime;
 
 
 public class SunFragment extends Fragment {
@@ -20,13 +21,19 @@ public class SunFragment extends Fragment {
     }
 
     public void refresh(AstroCalculator.SunInfo sunInfo) {
+        final String DEGREE  = "\u00b0";
+        setText(R.id.sunSunriseTime, ParseAstroDate.toStringTime(sunInfo.getSunrise()));
+        setText(R.id.sunSunriseAzimuth, ParseAstroDate.toStringAzimuth(sunInfo.getAzimuthRise()) + DEGREE);
 
+        setText(R.id.sunSunsetTime, ParseAstroDate.toStringTime(sunInfo.getSunset()));
+        setText(R.id.sunSunsetAzimuth, ParseAstroDate.toStringAzimuth(sunInfo.getAzimuthSet()) + DEGREE);
+
+        setText(R.id.sunTwilightMorningTime, ParseAstroDate.toStringTime(sunInfo.getTwilightMorning()));
+        setText(R.id.sunTwilightEveningTime, ParseAstroDate.toStringTime(sunInfo.getTwilightEvening()));
     }
 
-    public void setText(String text) {
-        TextView t = (TextView) getView().findViewById(R.id.sunSunriseAzimuth);
-        if(t != null) {
-            t.setText(text);
-        }
+    private void setText(int id, String value) {
+        TextView label = (TextView) getView().findViewById(id);
+        label.setText(value);
     }
 }

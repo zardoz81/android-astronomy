@@ -5,6 +5,9 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import com.astrocalculator.AstroCalculator;
 
 
 public class MoonFragment extends Fragment {
@@ -14,5 +17,23 @@ public class MoonFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         return inflater.inflate(R.layout.fragment_moon, container, false);
+    }
+
+    public void refresh(AstroCalculator.MoonInfo moonInfo) {
+        final String PERCENT  = "%";
+        setText(R.id.moonMoonriseTime, ParseAstroDate.toStringTime(moonInfo.getMoonrise()));
+        setText(R.id.moonMoonsetTime, ParseAstroDate.toStringTime(moonInfo.getMoonset()));
+
+        setText(R.id.moonNewMoonData, ParseAstroDate.toStringData(moonInfo.getNextNewMoon()));
+        setText(R.id.moonFullMoonData, ParseAstroDate.toStringData(moonInfo.getNextFullMoon()));
+
+        setText(R.id.moonMoonPhasePercent, ParseAstroDate.toStringPercent(moonInfo.getIllumination()) + PERCENT);
+
+        setText(R.id.moonLunarMonthDay, ParseAstroDate.toStringLunar(moonInfo.getAge()));
+    }
+
+    private void setText(int id, String value) {
+        TextView label = (TextView) getView().findViewById(id);
+        label.setText(value);
     }
 }

@@ -122,7 +122,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="2"
+        android:layout_weight="3"
         android:orientation="vertical">
         <TextView
             android:id="@+id/sunTwilight"
@@ -131,7 +131,7 @@
             android:gravity="center"
             android:textSize="@dimen/subtitle_headline"
             android:text="Twilight"/>
-            <LinearLayout
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -141,31 +141,16 @@
                     android:layout_weight="1"
                     android:gravity="right"
                     android:textSize="@dimen/information"
-                    android:text="@string/time"/>
+                    android:text="@string/morning_time"/>
                 <TextView
-                    android:id="@+id/sunTwilightTime"
+                    android:id="@+id/sunTwilightMorningTime"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="left"
                     android:textSize="@dimen/information"
                     android:text="19:15"/>
-            </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:orientation="vertical">
-        <TextView
-            android:id="@+id/sunCivilDawn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textSize="@dimen/subtitle_headline"
-            android:text="@string/sunCivilDawnLabel"/>
-
+        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -176,16 +161,16 @@
                 android:layout_weight="1"
                 android:gravity="right"
                 android:textSize="@dimen/information"
-                android:text="@string/time"/>
+                android:text="Evening time:"/>
             <TextView
-                android:id="@+id/sunCivilDawnTime"
+                android:id="@+id/sunTwilightEveningTime"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="left"
                 android:textSize="@dimen/information"
                 android:text="19:15"/>
-         </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

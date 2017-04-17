@@ -13,4 +13,5 @@
     <string name="full_moon">Full moon:</string>
     <string name="moon_phase">Moon phase:</string>
     <string name="lunar_month_day">Lunar month day:</string>
+    <string name="morning_time">Morning time:</string>
 </resources>
