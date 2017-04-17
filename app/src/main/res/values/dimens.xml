@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="main_headline">25sp</dimen>
+    <dimen name="subtitle_headline">20sp</dimen>
+    <dimen name="information">15sp</dimen>
+    <dimen name="moon_information">18sp</dimen>
+    <dimen name="moon_information_margin">8sp</dimen>
+</resources>

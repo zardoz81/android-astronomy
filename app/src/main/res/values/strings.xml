@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Astronomy</string>
+    <string name="sunSunriseTimeLabel">Time:</string>
+    <string name="sunCivilDawnTimeLabel">Time:</string>
+    <string name="sunCivilDawnLabel">Civil dawn</string>
+    <string name="time">Time:</string>
+    <string name="sunSunriseLabel">Sunrise</string>
+    <string name="azimuth">Azimuth:</string>
+    <string name="sunSunset">Sunset</string>
+    <string name="moonrise">Moonrise:</string>
+    <string name="moondown">Moondown:</string>
+    <string name="new_moon">New moon:</string>
+    <string name="full_moon">Full moon:</string>
+    <string name="moon_phase">Moon phase:</string>
+    <string name="lunar_month_day">Lunar month day:</string>
+</resources>

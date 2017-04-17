@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="Moon informations"
+        android:textSize="@dimen/main_headline"
+        android:textStyle="bold"
+        android:gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="10"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:gravity="right"
+                android:textStyle="bold"
+                android:text="@string/moonrise"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:gravity="right"
+                android:textStyle="bold"
+                android:text="@string/moondown"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:gravity="right"
+                android:textStyle="bold"
+                android:text="@string/new_moon"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:gravity="right"
+                android:textStyle="bold"
+                android:text="@string/full_moon"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:gravity="right"
+                android:textStyle="bold"
+                android:text="@string/moon_phase"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:gravity="right"
+                android:textStyle="bold"
+                android:text="@string/lunar_month_day"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/moonMoonriseTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:text="19:15"/>
+
+            <TextView
+                android:id="@+id/moonMoonsetTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:text="19:15"/>
+
+            <TextView
+                android:id="@+id/moonNewMoonData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:text="15.02.2017"/>
+
+            <TextView
+                android:id="@+id/moonFullMoonData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:text="15.02.2017"/>
+
+            <TextView
+                android:id="@+id/moonMoonPhasePercent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:text="15%"/>
+
+            <TextView
+                android:id="@+id/moonLunarMonthDay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/moon_information"
+                android:layout_marginBottom="@dimen/moon_information_margin"
+                android:text="18"/>
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+
+</LinearLayout>
