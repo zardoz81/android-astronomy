@@ -5,4 +5,5 @@
     <dimen name="information">15sp</dimen>
     <dimen name="moon_information">18sp</dimen>
     <dimen name="moon_information_margin">8sp</dimen>
+    <dimen name="big_portrait">30sp</dimen>
 </resources>

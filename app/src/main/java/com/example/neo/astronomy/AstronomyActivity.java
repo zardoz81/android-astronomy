@@ -1,6 +1,8 @@
 package com.example.neo.astronomy;
 
+import android.app.ActionBar;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -13,6 +15,8 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,29 +30,33 @@ import com.astrocalculator.AstroDateTime;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
 public class AstronomyActivity extends FragmentActivity {
-    private static final int NUM_PAGES = 2;
-
     private ViewPager astronomyPager;
     private PagerAdapter astronomyPagerAdapter;
 
     private boolean isLand = false;
-    private AstronomyCalculator astronomyCalculator;
 
     private LocationFragment locationFragment;
     private SunFragment sunFragment;
     private MoonFragment moonFragment;
 
+    private String currentLocation = "Lodz";
     private AstroCalculator astroCalculator;
 
+    private int UPDATE_FRAGMENT_MINUTES = 15;
     private Timer clockTimer;
     private Timer updateFragmentTimer;
-
-
+    private Timer initRefreshTimer;
+    private boolean wasChange = true;
 
 
     @Override
@@ -57,22 +65,53 @@ public class AstronomyActivity extends FragmentActivity {
         setContentView(R.layout.activity_astronomy);
 
         initAstronomyCalculator();
-        initFragments();
 
         initOrientation();
 
-        startTimers();
-
         if(isLand) {
-
+            initFragments();
         } else {
-            /*
-            astronomyPager = (ViewPager) findViewById(R.id.fragmentPager);
-            astronomyPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
-
-            astronomyPager.setAdapter(astronomyPagerAdapter);
-            */
+            initPageViewer();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        startInitRefreshTimer();
+
+        startTimers();
+    }
+
+    private void startInitRefreshTimer() {
+        final int FAST_REFRESH = 100;
+
+        stopTimer(initRefreshTimer);
+
+        initRefreshTimer = new Timer();
+        initRefreshTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(wasChange) {
+                            if(refreshSunFragment() && refreshMoonFragment() && refreshLocationFragment()) {
+                                wasChange = false;
+                            }
+                        }
+                    }
+                });
+            }
+        }, 0, FAST_REFRESH);
+    }
+
+    private void initPageViewer() {
+        astronomyPager = (ViewPager) findViewById(R.id.fragmentPager);
+        astronomyPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
+
+        astronomyPager.setAdapter(astronomyPagerAdapter);
     }
 
     @Override
@@ -91,9 +130,12 @@ public class AstronomyActivity extends FragmentActivity {
                 break;
             case R.id.changeRefreshFragmentTimeAction:
                 showToast("Change refresh time selected");
+                changeRefreshFragmentTime();
                 break;
             case R.id.refreshAction:
                 showToast("Refresh selected");
+                refreshSunFragment();
+                refreshMoonFragment();
                 break;
             default:
                 break;
@@ -108,7 +150,7 @@ public class AstronomyActivity extends FragmentActivity {
 
     private void changeLocation() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("New location");
+        builder.setTitle("New location [Current: " + currentLocation + "]");
 
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -131,6 +173,40 @@ public class AstronomyActivity extends FragmentActivity {
         builder.show();
     }
 
+    private void changeRefreshFragmentTime() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("New refresh time(minutes) [Current: " + UPDATE_FRAGMENT_MINUTES + "]");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);    //InputType.TYPE_CLASS_TEXT |
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newTime = input.getText().toString();
+                timeChangeProcess(newTime);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void timeChangeProcess(String newTime) {
+        try {
+            int newTimeInt = Integer.parseInt(newTime);
+            UPDATE_FRAGMENT_MINUTES = newTimeInt;
+        } catch(Exception exc) {
+            showToast(exc.getMessage());
+        }
+    }
+
     private void locationChangeProcess(final String newLocation) {
         String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + prepareNameLocation(newLocation) +
                 "&key=" + getResources().getString(R.string.googleKey);
@@ -144,7 +220,11 @@ public class AstronomyActivity extends FragmentActivity {
                             if(response.get("status").equals("OK")) {
                                 AstroCalculator.Location newAstroLocation = parseLatLngFromJSON(response);
                                 astroCalculator.setLocation(newAstroLocation);
-                                locationFragment.refreshLocation(newLocation);
+                                currentLocation = newLocation;
+
+                                locationFragment.refreshLocation(currentLocation);
+
+                                wasChange = true;
                                 showToast("Successful changed location");
                             } else {
                                 showToast("Response status is not OK");
@@ -181,7 +261,9 @@ public class AstronomyActivity extends FragmentActivity {
     }
 
     private void startUpdateFragmentTimer() {
-        final int UPDATE_FRAGMENT_REFRESH_MS = 5000;
+        final int MINUTE = 1000 * 60;
+
+        stopTimer(updateFragmentTimer);
 
         updateFragmentTimer = new Timer();
         updateFragmentTimer.schedule(new TimerTask() {
@@ -192,27 +274,47 @@ public class AstronomyActivity extends FragmentActivity {
                     public void run() {
                         refreshSunFragment();
                         refreshMoonFragment();
+                        refreshLocationFragment();
                     }
                 });
             }
-        }, 0, UPDATE_FRAGMENT_REFRESH_MS);
+            @Override
+            public boolean cancel() {
+                System.out.println("Wywolano cancel na timerze: " + MINUTE);
+                return super.cancel();
+            }
+        }, 0, MINUTE * UPDATE_FRAGMENT_MINUTES);
 
     }
 
-    private void refreshMoonFragment() {
+    private boolean refreshMoonFragment() {
         if(checkFragment(moonFragment)) {
             moonFragment.refresh(astroCalculator.getMoonInfo());
+            return true;
         }
+        return false;
     }
 
-    private void refreshSunFragment() {
+    private boolean refreshSunFragment() {
         if(checkFragment(sunFragment)) {
             sunFragment.refresh(astroCalculator.getSunInfo());
+            return true;
         }
+        return false;
+    }
+
+    private boolean refreshLocationFragment() {
+        if(checkFragment(locationFragment)) {
+            locationFragment.refreshLocation(currentLocation);
+            return true;
+        }
+        return false;
     }
 
     private void startClockTimer() {
         final int CLOCK_REFRESH_MS = 1000;
+
+        stopTimer(clockTimer);
 
         clockTimer = new Timer();
         clockTimer.schedule(new TimerTask() {
@@ -225,6 +327,12 @@ public class AstronomyActivity extends FragmentActivity {
                     }
                 });
             }
+
+            @Override
+            public boolean cancel() {
+                System.out.println("Wywolano cancel na timerze: " + CLOCK_REFRESH_MS);
+                return super.cancel();
+            }
         }, 0, CLOCK_REFRESH_MS);
     }
 
@@ -235,7 +343,7 @@ public class AstronomyActivity extends FragmentActivity {
     }
 
     private boolean checkFragment(Fragment fragment) {
-        return fragment != null && fragment.isInLayout();
+        return fragment != null;// && fragment.isInLayout();
     }
 
     private void initOrientation() {
@@ -243,8 +351,12 @@ public class AstronomyActivity extends FragmentActivity {
     }
 
     private void initAstronomyCalculator() {
-        astronomyCalculator = new AstronomyCalculator();
-        astroCalculator = new AstroCalculator(new AstroDateTime(2017, 4, 17, 9, 19, 50, 2, false), new AstroCalculator.Location(51.3687535, 19.3564248));
+        AstroCalculator.Location DEFAULT_LOCATION_LODZ = new AstroCalculator.Location(51.7592485, 19.4559833);
+        Calendar now = Calendar.getInstance();
+        int GMT_OFFSET = 2;
+        astroCalculator = new AstroCalculator(new AstroDateTime(now.get(Calendar.YEAR),
+                now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH), now.get(Calendar.HOUR_OF_DAY),
+                now.get(Calendar.MINUTE), now.get(Calendar.SECOND), GMT_OFFSET, false), DEFAULT_LOCATION_LODZ);
     }
 
     private void initFragments() {
@@ -270,75 +382,41 @@ public class AstronomyActivity extends FragmentActivity {
         }
     }
 
-    private static int index = 1;
-
-    private class AstronomyCalculator extends AsyncTask<String, Void, String> {
-
-        private String sunrise;
-
-        @Override
-        protected String doInBackground(String... params) {
-            System.out.println("Wywolany doInBackground");
-            sunrise = "Wschod slonca: " + index++;
-            return "Executed";
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            System.out.println("Wywolany onPostExecute");
-            TextView txt = (TextView) findViewById(R.id.sunSunriseTime);
-            if(txt != null) {
-                txt.setText(sunrise);
-            }
-        }
-
-        @Override
-        protected void onPreExecute() {
-            System.out.println("Wywolany onPreExecute");}
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            System.out.println("Wywolany onProgressUpdate");}
-    }
-/*
-    private void startFragmentTimer() {
-        TimerTask timer = new TimerTask(){
-
-            @Override
-            public void run() {
-                astronomyCalculator.execute("");
-            }
-        };
-
-        timer.sch
-    }
-    */
-
-    /*
-        @Override
-        public void onBackPressed() {
-            if(!isLand) {
-                if (astronomyPager.getCurrentItem() == 0) {
-                    super.onBackPressed();
-                } else {
-                    astronomyPager.setCurrentItem(astronomyPager.getCurrentItem() - 1);
-                }
-            }
-        }
-    */
+    private static int NUM_ITEMS = 3;
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+
         public ScreenSlidePagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
         @Override
         public Fragment getItem(int position) {
-            return new ScreenSlidePageFragment();
+            switch (position) {
+                case 0:
+                    System.out.println("Tworze locationFragment");
+                    locationFragment = new LocationFragment();
+                    wasChange = true;
+                    return locationFragment;
+                case 1:
+                    System.out.println("Tworze sunFragment");
+                    sunFragment = new SunFragment();
+                    wasChange = true;
+                    //sunFragment.refresh(astroCalculator.getSunInfo());
+                    return sunFragment;
+                case 2:
+                    System.out.println("Tworze moonFragment");
+                    moonFragment = new MoonFragment();
+                    wasChange = true;
+                    //moonFragment.refresh(astroCalculator.getMoonInfo());
+                    return moonFragment;
+                default:
+                    return null;
+            }
         }
 
         @Override
         public int getCount() {
-            return NUM_PAGES;
+            return NUM_ITEMS;
         }
     }
 }

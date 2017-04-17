@@ -36,8 +36,8 @@ public class ScreenSlidePageFragment extends Fragment {
     }
 
     public void setText(String txt) {
-        TextView view = (TextView) getView().findViewById(R.id.simpleText);
-        view.setText(txt);
+        //TextView view = (TextView) getView().findViewById(R.id.simpleText);
+        //view.setText(txt);
     }
 /*
     public interface AstronomyFragmentActivityListener {

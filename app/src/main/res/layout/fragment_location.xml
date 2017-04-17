@@ -17,7 +17,7 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:gravity="left"
-        android:text="Lodz"/>
+        android:text=""/>
 
     <TextView
         android:layout_width="0dp"
@@ -33,6 +33,6 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:gravity="left"
-        android:text="15"/>
+        android:text="00:00:00"/>
 
 </LinearLayout>

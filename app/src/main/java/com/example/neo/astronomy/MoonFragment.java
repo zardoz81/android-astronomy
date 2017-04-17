@@ -33,7 +33,12 @@ public class MoonFragment extends Fragment {
     }
 
     private void setText(int id, String value) {
-        TextView label = (TextView) getView().findViewById(id);
-        label.setText(value);
+        View v = getView();
+        if(v != null) {
+            TextView label = (TextView) v.findViewById(id);
+            if(label != null) {
+                label.setText(value);
+            }
+        }
     }
 }
