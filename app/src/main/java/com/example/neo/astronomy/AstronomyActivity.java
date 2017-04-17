@@ -1,5 +1,6 @@
 package com.example.neo.astronomy;
 
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -8,10 +9,22 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.astrocalculator.AstroCalculator;
 import com.astrocalculator.AstroDateTime;
+
+import org.json.JSONObject;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -62,6 +75,106 @@ public class AstronomyActivity extends FragmentActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_bar, menu);
+//        getActionBar().show();
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.changeLocationAction:
+                showToast("Change location selected");
+                changeLocation();
+                break;
+            case R.id.changeRefreshFragmentTimeAction:
+                showToast("Change refresh time selected");
+                break;
+            case R.id.refreshAction:
+                showToast("Refresh selected");
+                break;
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    private void showToast(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+    }
+
+    private void changeLocation() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("New location");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newLocation = input.getText().toString();
+                locationChangeProcess(newLocation);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void locationChangeProcess(final String newLocation) {
+        String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + prepareNameLocation(newLocation) +
+                "&key=" + getResources().getString(R.string.googleKey);
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            if(response.get("status").equals("OK")) {
+                                AstroCalculator.Location newAstroLocation = parseLatLngFromJSON(response);
+                                astroCalculator.setLocation(newAstroLocation);
+                                locationFragment.refreshLocation(newLocation);
+                                showToast("Successful changed location");
+                            } else {
+                                showToast("Response status is not OK");
+                            }
+                        } catch(Exception exc) {
+                            showToast(exc.getMessage());
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        showToast("Return error. Check internet access.");
+                    }
+                });
+
+        MySingleton.getInstance(this).addToRequestQueue(jsObjRequest);
+    }
+
+    private String prepareNameLocation(String newLocation) {
+        return newLocation.replace(" ", "+");
+    }
+
+    private AstroCalculator.Location parseLatLngFromJSON(JSONObject response) throws Exception {
+        JSONObject locationJSON = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location");
+        double lat = locationJSON.getDouble("lat");
+        double lng = locationJSON.getDouble("lng");
+        return new AstroCalculator.Location(lat, lng);
+    }
+
     private void startTimers() {
         startClockTimer();
         startUpdateFragmentTimer();
@@ -77,8 +190,6 @@ public class AstronomyActivity extends FragmentActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println("Wejscie w updateFragmentTimer");
-                        astroCalculator.setLocation(new AstroCalculator.Location(30, 30));
                         refreshSunFragment();
                         refreshMoonFragment();
                     }
