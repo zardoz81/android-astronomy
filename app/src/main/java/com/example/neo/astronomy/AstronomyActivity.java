@@ -8,7 +8,6 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 
 import com.astrocalculator.AstroCalculator;
@@ -27,40 +26,32 @@ public class AstronomyActivity extends FragmentActivity {
     private boolean isLand = false;
     private AstronomyCalculator astronomyCalculator;
 
-    private Timer updateTimer;
+    private LocationFragment locationFragment;
+    private SunFragment sunFragment;
+    private MoonFragment moonFragment;
 
-    private AstroCalculator astro;
+    private AstroCalculator astroCalculator;
+
+    private Timer clockTimer;
+    private Timer updateFragmentTimer;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_astronomy);
 
-        astronomyCalculator = new AstronomyCalculator();
+        initAstronomyCalculator();
+        initFragments();
 
-        isLand = getResources().getBoolean(R.bool.isLand);
+        initOrientation();
+
+        startTimers();
 
         if(isLand) {
-            //startFragmentTimer();
 
-            /*
-            updateTimer = new Timer();
-            updateTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    new AstronomyCalculator().execute("");
-                }
-            }, 0, 3000);
-            */
-            astro = new AstroCalculator(new AstroDateTime(2017, 4, 17, 9, 19, 50, 2, false), new AstroCalculator.Location(51.3687535, 19.3564248));
-            AstroCalculator.MoonInfo moonInfo= astro.getMoonInfo();
-            System.out.println(moonInfo.getMoonrise());
-
-            SunFragment sunFragment = (SunFragment) getSupportFragmentManager().findFragmentById(R.id.sunFragment);
-            sunFragment.refresh(astro.getSunInfo());
-
-            MoonFragment moonFragment = (MoonFragment) getSupportFragmentManager().findFragmentById(R.id.moonFragment);
-            moonFragment.refresh(astro.getMoonInfo());
         } else {
             /*
             astronomyPager = (ViewPager) findViewById(R.id.fragmentPager);
@@ -71,12 +62,101 @@ public class AstronomyActivity extends FragmentActivity {
         }
     }
 
+    private void startTimers() {
+        startClockTimer();
+        startUpdateFragmentTimer();
+    }
+
+    private void startUpdateFragmentTimer() {
+        final int UPDATE_FRAGMENT_REFRESH_MS = 5000;
+
+        updateFragmentTimer = new Timer();
+        updateFragmentTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        System.out.println("Wejscie w updateFragmentTimer");
+                        astroCalculator.setLocation(new AstroCalculator.Location(30, 30));
+                        refreshSunFragment();
+                        refreshMoonFragment();
+                    }
+                });
+            }
+        }, 0, UPDATE_FRAGMENT_REFRESH_MS);
+
+    }
+
+    private void refreshMoonFragment() {
+        if(checkFragment(moonFragment)) {
+            moonFragment.refresh(astroCalculator.getMoonInfo());
+        }
+    }
+
+    private void refreshSunFragment() {
+        if(checkFragment(sunFragment)) {
+            sunFragment.refresh(astroCalculator.getSunInfo());
+        }
+    }
+
+    private void startClockTimer() {
+        final int CLOCK_REFRESH_MS = 1000;
+
+        clockTimer = new Timer();
+        clockTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        refreshClockTime();
+                    }
+                });
+            }
+        }, 0, CLOCK_REFRESH_MS);
+    }
+
+    private void refreshClockTime() {
+        if(checkFragment(locationFragment)) {
+            locationFragment.refreshTime();
+        }
+    }
+
+    private boolean checkFragment(Fragment fragment) {
+        return fragment != null && fragment.isInLayout();
+    }
+
+    private void initOrientation() {
+        isLand = getResources().getBoolean(R.bool.isLand);
+    }
+
+    private void initAstronomyCalculator() {
+        astronomyCalculator = new AstronomyCalculator();
+        astroCalculator = new AstroCalculator(new AstroDateTime(2017, 4, 17, 9, 19, 50, 2, false), new AstroCalculator.Location(51.3687535, 19.3564248));
+    }
+
+    private void initFragments() {
+        locationFragment = (LocationFragment) getSupportFragmentManager().findFragmentById(R.id.locationFragment);
+        sunFragment = (SunFragment) getSupportFragmentManager().findFragmentById(R.id.sunFragment);
+        moonFragment = (MoonFragment) getSupportFragmentManager().findFragmentById(R.id.moonFragment);
+
+        refreshClockTime();
+        refreshSunFragment();
+        refreshMoonFragment();
+    }
+
     @Override
     public void onPause() {
-        if(updateTimer != null) {
-            updateTimer.cancel();
-        }
+        stopTimer(clockTimer);
+        stopTimer(updateFragmentTimer);
         super.onPause();
+    }
+
+    private void stopTimer(Timer timer) {
+        if(timer != null) {
+            timer.cancel();
+        }
     }
 
     private static int index = 1;

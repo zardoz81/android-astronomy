@@ -14,4 +14,6 @@
     <string name="moon_phase">Moon phase:</string>
     <string name="lunar_month_day">Lunar month day:</string>
     <string name="morning_time">Morning time:</string>
+    <string name="current_time">Current time:</string>
+    <string name="location">Location:</string>
 </resources>
