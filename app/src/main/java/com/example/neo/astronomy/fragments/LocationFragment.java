@@ -1,4 +1,4 @@
-package com.example.neo.astronomy;
+package com.example.neo.astronomy.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.example.neo.astronomy.R;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -34,6 +36,7 @@ public class LocationFragment extends Fragment {
     public void refreshLocation(String locationName) {
         setText(R.id.location, locationName);
     }
+
 
     private void setText(int id, String value) {
         View v = getView();

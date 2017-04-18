@@ -16,4 +16,8 @@
     <string name="morning_time">Morning time:</string>
     <string name="current_time">Current time:</string>
     <string name="location">Location:</string>
+    <string name="coordinates">Coordinates</string>
+    <string name="temperature">Temperature:</string>
+    <string name="pressure">Pressure:</string>
+    <string name="description">Description</string>
 </resources>

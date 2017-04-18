@@ -6,8 +6,12 @@ import android.util.LruCache;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
 
 public class MySingleton {
     private static MySingleton mInstance;
@@ -58,5 +62,14 @@ public class MySingleton {
 
     public ImageLoader getImageLoader() {
         return mImageLoader;
+    }
+
+
+
+    public static void sendRequest(String url, Response.Listener<JSONObject> responseAction, Response.ErrorListener errorAction, Context context ) {
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, responseAction, errorAction);
+
+        getInstance(context).addToRequestQueue(jsObjRequest);
     }
 }

@@ -21,6 +21,10 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.astrocalculator.AstroCalculator;
 import com.astrocalculator.AstroDateTime;
+import com.example.neo.astronomy.fragments.LocationFragment;
+import com.example.neo.astronomy.fragments.MoonFragment;
+import com.example.neo.astronomy.fragments.SunFragment;
+import com.example.neo.astronomy.model.WeatherInfo;
 
 import org.json.JSONObject;
 
@@ -44,6 +48,7 @@ public class AstronomyActivity extends FragmentActivity {
     private final double DEFAULT_LNG = 19.4559833;
     private String currentLocation = DEFAULT_LOCATION;
     private AstroCalculator astroCalculator;
+    private WeatherInfo weatherInfo;
 
     private int UPDATE_FRAGMENT_MINUTES = 15;
     private Timer clockTimer;
@@ -58,6 +63,7 @@ public class AstronomyActivity extends FragmentActivity {
         setContentView(R.layout.activity_astronomy);
 
         initAstronomyCalculator();
+        initWeatherInfo();
 
         initOrientation();
 
@@ -66,6 +72,10 @@ public class AstronomyActivity extends FragmentActivity {
         } else {
             initPageViewer();
         }
+    }
+
+    private void initWeatherInfo() {
+        weatherInfo = new WeatherInfo(currentLocation, astroCalculator.getLocation());
     }
 
     @Override
@@ -143,6 +153,9 @@ public class AstronomyActivity extends FragmentActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.actionFavorite:
+                System.out.println(weatherInfo.printWeather());
+                break;
             case R.id.changeLocationAction:
                 showToast("Change location selected");
                 changeLocation();
@@ -155,6 +168,8 @@ public class AstronomyActivity extends FragmentActivity {
                 showToast("Refresh selected");
                 refreshSunFragment();
                 refreshMoonFragment();
+                weatherInfo.checkWeather(getResources().getString(R.string.aerisClientId),
+                        getResources().getString(R.string.aerisClientSecretKey), getApplicationContext());
                 break;
             default:
                 break;
@@ -221,6 +236,7 @@ public class AstronomyActivity extends FragmentActivity {
         try {
             int newTimeInt = Integer.parseInt(newTime);
             UPDATE_FRAGMENT_MINUTES = newTimeInt;
+            showToast("Successful changed refresh time");
         } catch(Exception exc) {
             showToast(exc.getMessage());
         }
@@ -230,32 +246,34 @@ public class AstronomyActivity extends FragmentActivity {
         String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + prepareNameLocation(newLocation) +
                 "&key=" + getResources().getString(R.string.googleKey);
 
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            if(response.get("status").equals("OK")) {
-                                AstroCalculator.Location newAstroLocation = parseLatLngFromJSON(response);
-                                setNewLocation(newAstroLocation, newLocation);
-                            } else {
-                                showToast("Response status is not OK");
-                            }
-                        } catch(Exception exc) {
-                            showToast(exc.getMessage());
-                        }
+        Response.Listener<JSONObject> responseAction = new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    if(response.get("status").equals("OK")) {
+                        AstroCalculator.Location newAstroLocation = parseLatLngFromJSON(response);
+                        setNewLocation(newAstroLocation, newLocation);
+                        showToast("Successful changed location");
+                    } else {
+                        showToast("Response status is not OK");
                     }
-                }, new Response.ErrorListener() {
+                } catch(Exception exc) {
+                    showToast(exc.getMessage());
+                }
+            }
+        };
 
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        showToast("Return error. Check internet access.");
-                    }
-                });
+        Response.ErrorListener errorAction = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                showToast("Return error. Check internet access.");
+            }
+        };
 
-        MySingleton.getInstance(this).addToRequestQueue(jsObjRequest);
+        MySingleton.sendRequest(url, responseAction, errorAction, getApplicationContext());
     }
+
+
 
     private String prepareNameLocation(String newLocation) {
         return newLocation.replace(" ", "+");
@@ -406,7 +424,6 @@ public class AstronomyActivity extends FragmentActivity {
         refreshLocationFragment();
 
         wasChange = true;
-        showToast("Successful changed location");
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {

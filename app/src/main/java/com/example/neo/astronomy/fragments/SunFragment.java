@@ -1,4 +1,4 @@
-package com.example.neo.astronomy;
+package com.example.neo.astronomy.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.astrocalculator.AstroCalculator;
+import com.example.neo.astronomy.ParseAstroDate;
+import com.example.neo.astronomy.R;
 
 
 public class SunFragment extends Fragment {

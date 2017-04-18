@@ -2,20 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-<!--
-    <TextView
-        android:id="@+id/localization"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:text="Lokalizacja: Lodz"/>
-        -->
+
+
     <fragment
         android:id="@+id/locationFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        class="com.example.neo.astronomy.LocationFragment"/>
+        class="com.example.neo.astronomy.fragments.LocationFragment"/>
 
     <LinearLayout
         android:orientation="horizontal"
@@ -28,7 +22,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            class="com.example.neo.astronomy.SunFragment"/>
+            class="com.example.neo.astronomy.fragments.SunFragment"/>
 
 
         <fragment
@@ -36,7 +30,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            class="com.example.neo.astronomy.MoonFragment"/>
+            class="com.example.neo.astronomy.fragments.MoonFragment"/>
 
 
     </LinearLayout>
