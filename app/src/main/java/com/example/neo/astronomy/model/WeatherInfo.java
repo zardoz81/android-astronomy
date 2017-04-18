@@ -76,6 +76,9 @@ public class WeatherInfo {
     }
 
     public void parseWeatherInfo(JSONObject response) {
+        if(response == null) {
+            return;
+        }
         try {
             if(response.getBoolean("success")) {
                 lastResponse = response;
@@ -213,6 +216,62 @@ public class WeatherInfo {
         @Override
         public String toString() {
             return String.format("WP: %f, WD: %s, H: %d, V: %f", windPower, windDirection, humidity, visibility);
+        }
+    }
+
+    public static class LongtermInfo {
+        private String day;
+        private String date;
+        private String lowTemp;
+        private String highTemp;
+        private String description;
+
+        public LongtermInfo(String day, String date, String lowTemp, String highTemp, String description) {
+            this.day = day;
+            this.date = date;
+            this.lowTemp = lowTemp;
+            this.highTemp = highTemp;
+            this.description = description;
+        }
+
+        public String getDay() {
+            return day;
+        }
+
+        public void setDay(String day) {
+            this.day = day;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+
+        public String getLowTemp() {
+            return lowTemp;
+        }
+
+        public void setLowTemp(String lowTemp) {
+            this.lowTemp = lowTemp;
+        }
+
+        public String getHighTemp() {
+            return highTemp;
+        }
+
+        public void setHighTemp(String highTemp) {
+            this.highTemp = highTemp;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
         }
     }
 

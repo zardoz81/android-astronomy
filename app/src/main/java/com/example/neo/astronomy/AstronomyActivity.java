@@ -12,6 +12,7 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -30,7 +31,9 @@ import com.example.neo.astronomy.model.WeatherInfo;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -45,6 +48,7 @@ public class AstronomyActivity extends FragmentActivity {
     private SunFragment sunFragment;
     private MoonFragment moonFragment;
     private AdditionalFragment additionalFragment;
+    private ListWeatherFragment listWeatherFragment;
 
     private final String DEFAULT_LOCATION = "Lodz";
     private final double DEFAULT_LAT = 51.7592485;
@@ -97,7 +101,10 @@ public class AstronomyActivity extends FragmentActivity {
         outState.putString("location", currentLocation);
         outState.putDouble("lat", astroCalculator.getLocation().getLatitude());
         outState.putDouble("lng", astroCalculator.getLocation().getLongitude());
-        outState.putString("lastResponse", weatherInfo.getLastResponse().toString());
+        if(weatherInfo.getLastResponse() != null) {
+            outState.putString("lastResponse", weatherInfo.getLastResponse().toString());
+        }
+
 
         super.onSaveInstanceState(outState);
     }
@@ -183,6 +190,7 @@ public class AstronomyActivity extends FragmentActivity {
                 refreshSunFragment();
                 refreshMoonFragment();
 
+                listWeatherFragment.refresh(new WeatherInfo.LongtermInfo("Czwartek", "27 Apr 2017", "17", "29", "Sunny"));
                 break;
             default:
                 break;
@@ -473,7 +481,9 @@ public class AstronomyActivity extends FragmentActivity {
                     additionalFragment = new AdditionalFragment();
                     return additionalFragment;
                 case 2:
-                    return new ListWeatherFragment();
+                    listWeatherFragment = new ListWeatherFragment();
+                    //ArrayAdapter adapter = ArrayAdapter.createFromResource(getBaseContext(), R.array.Planets, android.R.layout.simple_list_item_2);
+                    return listWeatherFragment;
                 case 3:
                     System.out.println("Tworze sunFragment");
                     sunFragment = new SunFragment();

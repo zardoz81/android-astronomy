@@ -5,14 +5,20 @@ import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.neo.astronomy.LongtermWeatherAdapter;
 import com.example.neo.astronomy.R;
+import com.example.neo.astronomy.model.WeatherInfo;
+
+import java.util.ArrayList;
 
 
-public class ListWeatherFragment extends ListFragment implements AdapterView.OnItemClickListener {
+public class ListWeatherFragment extends ListFragment {
+    private ArrayList<WeatherInfo.LongtermInfo> longtermData;
+    private static LongtermWeatherAdapter adapter;
+
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -23,13 +29,24 @@ public class ListWeatherFragment extends ListFragment implements AdapterView.OnI
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        ArrayAdapter adapter = ArrayAdapter.createFromResource(getActivity(), R.array.Planets, android.R.layout.simple_list_item_1);
+        longtermData = new ArrayList<>();
+
+        longtermData.add(new WeatherInfo.LongtermInfo("Tue", "25 Apr 2017", "15", "29", "Sunny"));
+        longtermData.add(new WeatherInfo.LongtermInfo("Wen", "26 Apr 2017", "18", "27", "Sunny"));
+
+        adapter = new LongtermWeatherAdapter(longtermData, getContext());
         setListAdapter(adapter);
-        getListView().setOnItemClickListener(this);
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Toast.makeText(getActivity(), "Item: " + position, Toast.LENGTH_SHORT).show();
+    public void refresh(WeatherInfo.LongtermInfo longtermInfo) {
+        /*longtermData.add(longtermInfo);
+        //adapter.add(longtermInfo);
+        for(WeatherInfo.LongtermInfo l: longtermData) {
+            System.out.println("Mamy: " + l.getDate());
+        }
+        adapter = new LongtermWeatherAdapter(longtermData, getContext());
+        setListAdapter(adapter);
+        */
+        adapter.add(longtermInfo);
     }
 }

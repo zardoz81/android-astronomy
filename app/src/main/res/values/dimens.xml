@@ -6,6 +6,8 @@
     <dimen name="moon_information">18sp</dimen>
     <dimen name="moon_information_margin">8sp</dimen>
     <dimen name="big_portrait">28sp</dimen>
+    <dimen name="subrow">18sp</dimen>
+    <dimen name="headrow">20sp</dimen>
 
     <string-array name="Planets">
         <item>Sun</item>
