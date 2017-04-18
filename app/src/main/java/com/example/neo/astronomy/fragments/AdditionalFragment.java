@@ -24,7 +24,7 @@ public class AdditionalFragment extends Fragment {
     public void refreshData(WeatherInfo.AdditionalInfo additionalInfo) {
         boolean isEuropean = true;
         setText(R.id.windPower, ParseWeatherInfo.toWindPower(additionalInfo.getWindPower(), isEuropean));
-        setText(R.id.windDirection, additionalInfo.getWindDirection());
+        setText(R.id.windDirection, ParseWeatherInfo.toWindDirection(additionalInfo.getWindDirection()));
         setText(R.id.humidity, ParseWeatherInfo.toHumidity(additionalInfo.getHumidity()));
         setText(R.id.visibility, ParseWeatherInfo.toVisibility(additionalInfo.getVisibility(), isEuropean));
     }

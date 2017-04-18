@@ -2,6 +2,9 @@ package com.example.neo.astronomy.parser;
 
 import com.astrocalculator.AstroCalculator;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ParseWeatherInfo {
     static final String PERCENT = "%";
     static final String DEGREE  = "\u00b0";
@@ -37,4 +40,23 @@ public class ParseWeatherInfo {
     public static String toTempRow(String lowTemp, String highTemp) {
         return String.format("%s%s-%s%s", lowTemp, DEGREE, highTemp, DEGREE);
     }
+
+    public static String toWindDirection(String shortDir) {
+        if(shortDir == null) {
+            return "";
+        }
+        Map<String, String> directionsMap = new HashMap<String, String>();
+        directionsMap.put("S", "South");
+        directionsMap.put("N", "North");
+        directionsMap.put("W", "West");
+        directionsMap.put("E", "East");
+        StringBuilder result = new StringBuilder();
+        for(String key: directionsMap.keySet()) {
+            if(shortDir.contains(key)) {
+                result.append(directionsMap.get(key) + " ");
+            }
+        }
+        return result.toString();
+    }
+
 }

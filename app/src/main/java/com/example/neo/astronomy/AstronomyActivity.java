@@ -83,6 +83,7 @@ public class AstronomyActivity extends FragmentActivity {
 
     private void initWeatherInfo() {
         weatherInfo = new WeatherInfo(currentLocation, astroCalculator.getLocation());
+        weatherInfo.refresh();
     }
 
     @Override
@@ -122,7 +123,9 @@ public class AstronomyActivity extends FragmentActivity {
 
         try {
             JSONObject lastResponse = new JSONObject(savedInstanceState.getString("lastResponse"));
-            weatherInfo.parseWeatherInfo(lastResponse);
+            if(lastResponse != null) {
+                weatherInfo.parseWeatherInfo(lastResponse);
+            }
         } catch(Exception exc) {
             showToast(exc.getMessage());
         }
@@ -147,6 +150,7 @@ public class AstronomyActivity extends FragmentActivity {
                             boolean locationResult = refreshLocationFragment();
                             boolean additionalFragment = isLand || refreshAdditionalFragment();
                             if(timeResult && sunResult && moonResult && locationResult && additionalFragment) {
+                                System.out.println("Zmiana wasChange");
                                 wasChange = false;
                             }
                         }
@@ -189,8 +193,9 @@ public class AstronomyActivity extends FragmentActivity {
                 showToast("Refresh selected");
                 refreshSunFragment();
                 refreshMoonFragment();
-
-                listWeatherFragment.refresh(new WeatherInfo.LongtermInfo("Czwartek", "27 Apr 2017", "17", "29", "Sunny"));
+                refreshLocationFragment();
+                refreshAdditionalFragment();
+                //listWeatherFragment.refresh(new WeatherInfo.LongtermInfo("Czwartek", "27 Apr 2017", "17", "29", "Sunny"));
                 break;
             default:
                 break;
@@ -327,6 +332,7 @@ public class AstronomyActivity extends FragmentActivity {
                         refreshSunFragment();
                         refreshMoonFragment();
                         refreshLocationFragment();
+                        refreshAdditionalFragment();
                     }
                 });
             }
@@ -426,7 +432,6 @@ public class AstronomyActivity extends FragmentActivity {
         locationFragment = (LocationFragment) getSupportFragmentManager().findFragmentById(R.id.locationFragment);
         sunFragment = (SunFragment) getSupportFragmentManager().findFragmentById(R.id.sunFragment);
         moonFragment = (MoonFragment) getSupportFragmentManager().findFragmentById(R.id.moonFragment);
-        //additionalFragment = (AdditionalFragment) getSupportFragmentManager().findFragmentById(R.);
 
         refreshClockTime();
         refreshSunFragment();
@@ -473,26 +478,34 @@ public class AstronomyActivity extends FragmentActivity {
 
             switch (position) {
                 case 0:
-                    System.out.println("Tworze locationFragment");
-                    locationFragment = new LocationFragment();
+                    if(locationFragment == null) {
+                        System.out.println("Tworze locationFragment");
+                        locationFragment = new LocationFragment();
+                    }
                     return locationFragment;
                 case 1:
-                    System.out.println("Tworze additionalFragment");
-                    additionalFragment = new AdditionalFragment();
+                    if(additionalFragment == null) {
+                        System.out.println("Tworze additionalFragment");
+                        additionalFragment = new AdditionalFragment();
+                    }
                     return additionalFragment;
                 case 2:
-                    listWeatherFragment = new ListWeatherFragment();
-                    //ArrayAdapter adapter = ArrayAdapter.createFromResource(getBaseContext(), R.array.Planets, android.R.layout.simple_list_item_2);
+                    if(listWeatherFragment == null) {
+                        System.out.println("Tworze listWeatherFragment");
+                        listWeatherFragment = new ListWeatherFragment();
+                    }
                     return listWeatherFragment;
                 case 3:
-                    System.out.println("Tworze sunFragment");
-                    sunFragment = new SunFragment();
-                    //sunFragment.refresh(astroCalculator.getSunInfo());
+                    if(sunFragment == null) {
+                        System.out.println("Tworze sunFragment");
+                        sunFragment = new SunFragment();
+                    }
                     return sunFragment;
                 case 4:
-                    System.out.println("Tworze moonFragment");
-                    moonFragment = new MoonFragment();
-                    //moonFragment.refresh(astroCalculator.getMoonInfo());
+                    if(moonFragment == null) {
+                        System.out.println("Tworze moonFragment");
+                        moonFragment = new MoonFragment();
+                    }
                     return moonFragment;
                 default:
                     wasChange = false;

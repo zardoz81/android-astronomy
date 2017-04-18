@@ -11,6 +11,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class WeatherInfo {
+    private final int REFRESH_TIMESTAMP = 60 * 60;  //1 HOUR // 60 minutes * 60 seconds
+
     private BasicInfo basicInfo;
     private AdditionalInfo additionalInfo;
 
@@ -24,9 +26,9 @@ public class WeatherInfo {
         return basicInfo;
     }
 
-    private void refresh() {
+    public void refresh() {
         if(lastResponse != null) {
-            //parseWeatherInfo(lastResponse);
+            parseWeatherInfo(lastResponse);
         }
     }
 
@@ -47,10 +49,13 @@ public class WeatherInfo {
     }
 
     public void checkWeather(String clientId, String clientSecretKey, Context context) {
-        if(!wasChangeLocation) {
-            return;
+        if(wasChangeLocation || timeToRefresh()) {
+            sendResponse(clientId, clientSecretKey, context);
         }
-        sendResponse(clientId, clientSecretKey, context);
+    }
+
+    private boolean timeToRefresh() {
+        return System.currentTimeMillis() - lastTimestamp >= REFRESH_TIMESTAMP;
     }
 
     private void sendResponse(String clientId, String clientSecretKey, Context context) {
@@ -76,9 +81,6 @@ public class WeatherInfo {
     }
 
     public void parseWeatherInfo(JSONObject response) {
-        if(response == null) {
-            return;
-        }
         try {
             if(response.getBoolean("success")) {
                 lastResponse = response;
