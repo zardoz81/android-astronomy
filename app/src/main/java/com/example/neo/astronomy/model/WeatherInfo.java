@@ -17,15 +17,43 @@ public class WeatherInfo {
     private long lastTimestamp;
     private JSONObject lastResponse;
 
+    private boolean wasChangeLocation;
+
+    public BasicInfo getBasicInfo() {
+        //refresh();
+        return basicInfo;
+    }
+
+    private void refresh() {
+        if(lastResponse != null) {
+            //parseWeatherInfo(lastResponse);
+        }
+    }
+
+    public AdditionalInfo getAdditionalInfo() {
+        //refresh();
+        return additionalInfo;
+    }
+
+    public JSONObject getLastResponse() {
+        return lastResponse;
+    }
+
     public WeatherInfo(String location, AstroCalculator.Location latLng) {
         initBasicInfo();
         initAdditionalInfo();
 
-        this.basicInfo.setLocation(location);
-        this.basicInfo.setLatLng(latLng);
+        changeLocation(latLng, location);
     }
 
     public void checkWeather(String clientId, String clientSecretKey, Context context) {
+        if(!wasChangeLocation) {
+            return;
+        }
+        sendResponse(clientId, clientSecretKey, context);
+    }
+
+    private void sendResponse(String clientId, String clientSecretKey, Context context) {
         String url = getUrl(clientId, clientSecretKey);
         Response.Listener<JSONObject> responseAction = new Response.Listener<JSONObject>() {
             @Override
@@ -47,7 +75,7 @@ public class WeatherInfo {
         return String.format("Timestamp: %d\nbasicInfo: %s\nadditionalInfo: %s", lastTimestamp, basicInfo.toString(), additionalInfo.toString());
     }
 
-    private void parseWeatherInfo(JSONObject response) {
+    public void parseWeatherInfo(JSONObject response) {
         try {
             if(response.getBoolean("success")) {
                 lastResponse = response;
@@ -81,6 +109,13 @@ public class WeatherInfo {
 
     private void initBasicInfo() {
         basicInfo = new BasicInfo();
+    }
+
+    public void changeLocation(AstroCalculator.Location newAstroLocation, String newLocation) {
+        basicInfo.setLocation(newLocation);
+        basicInfo.setLatLng(newAstroLocation);
+
+        wasChangeLocation = true;
     }
 
 

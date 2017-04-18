@@ -21,6 +21,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.astrocalculator.AstroCalculator;
 import com.astrocalculator.AstroDateTime;
+import com.example.neo.astronomy.fragments.AdditionalFragment;
 import com.example.neo.astronomy.fragments.LocationFragment;
 import com.example.neo.astronomy.fragments.MoonFragment;
 import com.example.neo.astronomy.fragments.SunFragment;
@@ -42,6 +43,7 @@ public class AstronomyActivity extends FragmentActivity {
     private LocationFragment locationFragment;
     private SunFragment sunFragment;
     private MoonFragment moonFragment;
+    private AdditionalFragment additionalFragment;
 
     private final String DEFAULT_LOCATION = "Lodz";
     private final double DEFAULT_LAT = 51.7592485;
@@ -54,7 +56,7 @@ public class AstronomyActivity extends FragmentActivity {
     private Timer clockTimer;
     private Timer updateFragmentTimer;
     private Timer initRefreshTimer;
-    private boolean wasChange = true;
+    private boolean wasChange;
 
 
     @Override
@@ -81,6 +83,7 @@ public class AstronomyActivity extends FragmentActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        wasChange = true;
 
         startInitRefreshTimer();
 
@@ -93,6 +96,7 @@ public class AstronomyActivity extends FragmentActivity {
         outState.putString("location", currentLocation);
         outState.putDouble("lat", astroCalculator.getLocation().getLatitude());
         outState.putDouble("lng", astroCalculator.getLocation().getLongitude());
+        outState.putString("lastResponse", weatherInfo.getLastResponse().toString());
 
         super.onSaveInstanceState(outState);
     }
@@ -107,6 +111,13 @@ public class AstronomyActivity extends FragmentActivity {
         double lat = savedInstanceState.getDouble("lat", DEFAULT_LAT);
         double lng = savedInstanceState.getDouble("lng", DEFAULT_LNG);
         setNewLocation(new AstroCalculator.Location(lat, lng), location);
+
+        try {
+            JSONObject lastResponse = new JSONObject(savedInstanceState.getString("lastResponse"));
+            weatherInfo.parseWeatherInfo(lastResponse);
+        } catch(Exception exc) {
+            showToast(exc.getMessage());
+        }
     }
 
     private void startInitRefreshTimer() {
@@ -126,7 +137,8 @@ public class AstronomyActivity extends FragmentActivity {
                             boolean sunResult = refreshSunFragment();
                             boolean moonResult = refreshMoonFragment();
                             boolean locationResult = refreshLocationFragment();
-                            if(timeResult && sunResult && moonResult && locationResult) {
+                            boolean additionalFragment = isLand || refreshAdditionalFragment();
+                            if(timeResult && sunResult && moonResult && locationResult && additionalFragment) {
                                 wasChange = false;
                             }
                         }
@@ -159,6 +171,7 @@ public class AstronomyActivity extends FragmentActivity {
             case R.id.changeLocationAction:
                 showToast("Change location selected");
                 changeLocation();
+
                 break;
             case R.id.changeRefreshFragmentTimeAction:
                 showToast("Change refresh time selected");
@@ -168,8 +181,7 @@ public class AstronomyActivity extends FragmentActivity {
                 showToast("Refresh selected");
                 refreshSunFragment();
                 refreshMoonFragment();
-                weatherInfo.checkWeather(getResources().getString(R.string.aerisClientId),
-                        getResources().getString(R.string.aerisClientSecretKey), getApplicationContext());
+
                 break;
             default:
                 break;
@@ -337,6 +349,15 @@ public class AstronomyActivity extends FragmentActivity {
     private boolean refreshLocationFragment() {
         if(checkFragment(locationFragment)) {
             locationFragment.refreshLocation(currentLocation);
+            locationFragment.refreshWeather(weatherInfo.getBasicInfo());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean refreshAdditionalFragment() {
+        if(checkFragment(additionalFragment)) {
+            additionalFragment.refreshData(weatherInfo.getAdditionalInfo());
             return true;
         }
         return false;
@@ -396,6 +417,7 @@ public class AstronomyActivity extends FragmentActivity {
         locationFragment = (LocationFragment) getSupportFragmentManager().findFragmentById(R.id.locationFragment);
         sunFragment = (SunFragment) getSupportFragmentManager().findFragmentById(R.id.sunFragment);
         moonFragment = (MoonFragment) getSupportFragmentManager().findFragmentById(R.id.moonFragment);
+        //additionalFragment = (AdditionalFragment) getSupportFragmentManager().findFragmentById(R.);
 
         refreshClockTime();
         refreshSunFragment();
@@ -415,16 +437,20 @@ public class AstronomyActivity extends FragmentActivity {
         }
     }
 
-    private static int NUM_ITEMS = 3;
-
     public void setNewLocation(AstroCalculator.Location newAstroLocation, String locationName) {
         astroCalculator.setLocation(newAstroLocation);
         currentLocation = locationName;
+
+        weatherInfo.changeLocation(newAstroLocation, locationName);
+        weatherInfo.checkWeather(getResources().getString(R.string.aerisClientId),
+                getResources().getString(R.string.aerisClientSecretKey), getApplicationContext());
 
         refreshLocationFragment();
 
         wasChange = true;
     }
+
+    private static int NUM_ITEMS = 4;
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
 
@@ -434,25 +460,29 @@ public class AstronomyActivity extends FragmentActivity {
 
         @Override
         public Fragment getItem(int position) {
+            wasChange = true;
+
             switch (position) {
                 case 0:
                     System.out.println("Tworze locationFragment");
                     locationFragment = new LocationFragment();
-                    wasChange = true;
                     return locationFragment;
                 case 1:
+                    System.out.println("Tworze additionalFragment");
+                    additionalFragment = new AdditionalFragment();
+                    return additionalFragment;
+                case 2:
                     System.out.println("Tworze sunFragment");
                     sunFragment = new SunFragment();
-                    wasChange = true;
                     //sunFragment.refresh(astroCalculator.getSunInfo());
                     return sunFragment;
-                case 2:
+                case 3:
                     System.out.println("Tworze moonFragment");
                     moonFragment = new MoonFragment();
-                    wasChange = true;
                     //moonFragment.refresh(astroCalculator.getMoonInfo());
                     return moonFragment;
                 default:
+                    wasChange = false;
                     return null;
             }
         }

@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.astrocalculator.AstroCalculator;
-import com.example.neo.astronomy.ParseAstroDate;
+import com.example.neo.astronomy.parser.ParseAstroDate;
 import com.example.neo.astronomy.R;
 
 

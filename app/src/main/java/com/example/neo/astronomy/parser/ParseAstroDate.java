@@ -1,4 +1,4 @@
-package com.example.neo.astronomy;
+package com.example.neo.astronomy.parser;
 
 import com.astrocalculator.AstroDateTime;
 
