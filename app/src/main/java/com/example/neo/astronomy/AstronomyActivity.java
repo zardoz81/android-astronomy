@@ -22,6 +22,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.astrocalculator.AstroCalculator;
 import com.astrocalculator.AstroDateTime;
 import com.example.neo.astronomy.fragments.AdditionalFragment;
+import com.example.neo.astronomy.fragments.ListWeatherFragment;
 import com.example.neo.astronomy.fragments.LocationFragment;
 import com.example.neo.astronomy.fragments.MoonFragment;
 import com.example.neo.astronomy.fragments.SunFragment;
@@ -450,7 +451,7 @@ public class AstronomyActivity extends FragmentActivity {
         wasChange = true;
     }
 
-    private static int NUM_ITEMS = 4;
+    private static int NUM_ITEMS = 5;
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
 
@@ -472,11 +473,13 @@ public class AstronomyActivity extends FragmentActivity {
                     additionalFragment = new AdditionalFragment();
                     return additionalFragment;
                 case 2:
+                    return new ListWeatherFragment();
+                case 3:
                     System.out.println("Tworze sunFragment");
                     sunFragment = new SunFragment();
                     //sunFragment.refresh(astroCalculator.getSunInfo());
                     return sunFragment;
-                case 3:
+                case 4:
                     System.out.println("Tworze moonFragment");
                     moonFragment = new MoonFragment();
                     //moonFragment.refresh(astroCalculator.getMoonInfo());
