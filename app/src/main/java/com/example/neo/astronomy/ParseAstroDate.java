@@ -21,6 +21,6 @@ public class ParseAstroDate {
     }
 
     public static String toStringLunar(double age) {
-        return String.format("%d", (int) age);
+        return String.format("%.3f", age);
     }
 }

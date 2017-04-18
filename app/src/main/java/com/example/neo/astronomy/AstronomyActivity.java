@@ -1,9 +1,6 @@
 package com.example.neo.astronomy;
 
-import android.app.ActionBar;
 import android.content.DialogInterface;
-import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -15,10 +12,7 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -30,11 +24,7 @@ import com.astrocalculator.AstroDateTime;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -49,7 +39,10 @@ public class AstronomyActivity extends FragmentActivity {
     private SunFragment sunFragment;
     private MoonFragment moonFragment;
 
-    private String currentLocation = "Lodz";
+    private final String DEFAULT_LOCATION = "Lodz";
+    private final double DEFAULT_LAT = 51.7592485;
+    private final double DEFAULT_LNG = 19.4559833;
+    private String currentLocation = DEFAULT_LOCATION;
     private AstroCalculator astroCalculator;
 
     private int UPDATE_FRAGMENT_MINUTES = 15;
@@ -84,6 +77,28 @@ public class AstronomyActivity extends FragmentActivity {
         startTimers();
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        outState.putString("location", currentLocation);
+        outState.putDouble("lat", astroCalculator.getLocation().getLatitude());
+        outState.putDouble("lng", astroCalculator.getLocation().getLongitude());
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        String location = savedInstanceState.getString("location", DEFAULT_LOCATION);
+
+        double lat = savedInstanceState.getDouble("lat", DEFAULT_LAT);
+        double lng = savedInstanceState.getDouble("lng", DEFAULT_LNG);
+        setNewLocation(new AstroCalculator.Location(lat, lng), location);
+    }
+
     private void startInitRefreshTimer() {
         final int FAST_REFRESH = 100;
 
@@ -97,7 +112,11 @@ public class AstronomyActivity extends FragmentActivity {
                     @Override
                     public void run() {
                         if(wasChange) {
-                            if(refreshSunFragment() && refreshMoonFragment() && refreshLocationFragment()) {
+                            boolean timeResult = refreshClockTime();
+                            boolean sunResult = refreshSunFragment();
+                            boolean moonResult = refreshMoonFragment();
+                            boolean locationResult = refreshLocationFragment();
+                            if(timeResult && sunResult && moonResult && locationResult) {
                                 wasChange = false;
                             }
                         }
@@ -219,13 +238,7 @@ public class AstronomyActivity extends FragmentActivity {
                         try {
                             if(response.get("status").equals("OK")) {
                                 AstroCalculator.Location newAstroLocation = parseLatLngFromJSON(response);
-                                astroCalculator.setLocation(newAstroLocation);
-                                currentLocation = newLocation;
-
-                                locationFragment.refreshLocation(currentLocation);
-
-                                wasChange = true;
-                                showToast("Successful changed location");
+                                setNewLocation(newAstroLocation, newLocation);
                             } else {
                                 showToast("Response status is not OK");
                             }
@@ -336,10 +349,12 @@ public class AstronomyActivity extends FragmentActivity {
         }, 0, CLOCK_REFRESH_MS);
     }
 
-    private void refreshClockTime() {
+    private boolean refreshClockTime() {
         if(checkFragment(locationFragment)) {
             locationFragment.refreshTime();
+            return true;
         }
+        return false;
     }
 
     private boolean checkFragment(Fragment fragment) {
@@ -351,7 +366,7 @@ public class AstronomyActivity extends FragmentActivity {
     }
 
     private void initAstronomyCalculator() {
-        AstroCalculator.Location DEFAULT_LOCATION_LODZ = new AstroCalculator.Location(51.7592485, 19.4559833);
+        AstroCalculator.Location DEFAULT_LOCATION_LODZ = new AstroCalculator.Location(DEFAULT_LAT, DEFAULT_LNG);
         Calendar now = Calendar.getInstance();
         int GMT_OFFSET = 2;
         astroCalculator = new AstroCalculator(new AstroDateTime(now.get(Calendar.YEAR),
@@ -383,6 +398,17 @@ public class AstronomyActivity extends FragmentActivity {
     }
 
     private static int NUM_ITEMS = 3;
+
+    public void setNewLocation(AstroCalculator.Location newAstroLocation, String locationName) {
+        astroCalculator.setLocation(newAstroLocation);
+        currentLocation = locationName;
+
+        refreshLocationFragment();
+
+        wasChange = true;
+        showToast("Successful changed location");
+    }
+
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
 
         public ScreenSlidePagerAdapter(FragmentManager fm) {

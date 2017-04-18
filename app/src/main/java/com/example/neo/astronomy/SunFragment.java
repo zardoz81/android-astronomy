@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.astrocalculator.AstroCalculator;
-import com.astrocalculator.AstroDateTime;
 
 
 public class SunFragment extends Fragment {
