@@ -12,14 +12,11 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.astrocalculator.AstroCalculator;
 import com.astrocalculator.AstroDateTime;
 import com.example.neo.astronomy.fragments.AdditionalFragment;
@@ -31,9 +28,7 @@ import com.example.neo.astronomy.model.WeatherInfo;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -124,7 +119,7 @@ public class AstronomyActivity extends FragmentActivity {
         try {
             JSONObject lastResponse = new JSONObject(savedInstanceState.getString("lastResponse"));
             if(lastResponse != null) {
-                weatherInfo.parseWeatherInfo(lastResponse);
+                weatherInfo.parseWeatherInfoByAeris(lastResponse);
             }
         } catch(Exception exc) {
             showToast(exc.getMessage());
@@ -195,6 +190,7 @@ public class AstronomyActivity extends FragmentActivity {
                 refreshMoonFragment();
                 refreshLocationFragment();
                 refreshAdditionalFragment();
+                listWeatherFragment.refresh(weatherInfo.getLongtermData());
                 //listWeatherFragment.refresh(new WeatherInfo.LongtermInfo("Czwartek", "27 Apr 2017", "17", "29", "Sunny"));
                 break;
             default:
@@ -456,8 +452,7 @@ public class AstronomyActivity extends FragmentActivity {
         currentLocation = locationName;
 
         weatherInfo.changeLocation(newAstroLocation, locationName);
-        weatherInfo.checkWeather(getResources().getString(R.string.aerisClientId),
-                getResources().getString(R.string.aerisClientSecretKey), getApplicationContext());
+        weatherInfo.checkWeather(getApplicationContext());
 
         refreshLocationFragment();
 

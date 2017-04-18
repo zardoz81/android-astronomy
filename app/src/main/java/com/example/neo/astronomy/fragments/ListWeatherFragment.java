@@ -31,22 +31,18 @@ public class ListWeatherFragment extends ListFragment {
         super.onActivityCreated(savedInstanceState);
         longtermData = new ArrayList<>();
 
-        longtermData.add(new WeatherInfo.LongtermInfo("Tue", "25 Apr 2017", "15", "29", "Sunny"));
-        longtermData.add(new WeatherInfo.LongtermInfo("Wen", "26 Apr 2017", "18", "27", "Sunny"));
+        //longtermData.add(new WeatherInfo.LongtermInfo("Tue", "25 Apr 2017", "15", "29", "Sunny"));
+        //longtermData.add(new WeatherInfo.LongtermInfo("Wen", "26 Apr 2017", "18", "27", "Sunny"));
 
-        adapter = new LongtermWeatherAdapter(longtermData, getContext());
-        setListAdapter(adapter);
+        //adapter = new LongtermWeatherAdapter(longtermData, getContext());
+        //setListAdapter(adapter);
+        refresh(longtermData);
     }
 
-    public void refresh(WeatherInfo.LongtermInfo longtermInfo) {
-        /*longtermData.add(longtermInfo);
-        //adapter.add(longtermInfo);
-        for(WeatherInfo.LongtermInfo l: longtermData) {
-            System.out.println("Mamy: " + l.getDate());
-        }
+    public void refresh(ArrayList<WeatherInfo.LongtermInfo> longtermData) {
+        this.longtermData = longtermData;
+
         adapter = new LongtermWeatherAdapter(longtermData, getContext());
         setListAdapter(adapter);
-        */
-        adapter.add(longtermInfo);
     }
 }
