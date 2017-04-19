@@ -30,6 +30,24 @@ public class WeatherInfo {
 
     private boolean useYahoo = true;
 
+    public long getLastTimestamp() {
+        return lastTimestamp;
+    }
+
+    public void setLastTimestamp(long lastTimestamp) {
+        this.lastTimestamp = lastTimestamp;
+    }
+
+    public void setLastResponse(JSONObject lastResponse) {
+        this.lastResponse = lastResponse;
+    }
+
+    public WeatherInfo() {
+        initBasicInfo();
+        initAdditionalInfo();
+        initLongtermData();
+    }
+
     public ArrayList<LongtermInfo> getLongtermData() {
         return longtermData;
     }
@@ -41,7 +59,11 @@ public class WeatherInfo {
 
     public void refresh() {
         if(lastResponse != null) {
-            parseWeatherInfoByAeris(lastResponse);
+            if(useYahoo) {
+                parseWeatherInfoByYahoo(lastResponse);
+            } else {
+                parseWeatherInfoByAeris(lastResponse);
+            }
         }
     }
 
@@ -55,17 +77,13 @@ public class WeatherInfo {
     }
 
     public WeatherInfo(String location) {
-        initBasicInfo();
-        initAdditionalInfo();
-        initLongtermData();
+        this();
 
         changeLocation(location);
     }
 
     public WeatherInfo(String location, AstroCalculator.Location latLng) {
-        initBasicInfo();
-        initAdditionalInfo();
-        initLongtermData();
+        this();
 
         changeLocation(latLng, location);
     }
@@ -108,10 +126,16 @@ public class WeatherInfo {
 
     private void parseWeatherInfoByYahoo(JSONObject response) {
         try {
+            //System.out.println("Otrzymany response: " + response.getJSONObject("query").getJSONObject("results").getJSONObject("channel").getJSONObject("item").getJSONArray("forecast").toString(2));
+
             lastTimestamp = System.currentTimeMillis();
             JSONObject info = response.getJSONObject("query").getJSONObject("results").getJSONObject("channel");
             JSONArray forecast = info.getJSONObject("item").getJSONArray("forecast");
 
+            basicInfo.setLocation(info.getJSONObject("location").getString("city"));
+            double lat = Double.parseDouble(info.getJSONObject("item").getString("lat"));
+            double lng = Double.parseDouble(info.getJSONObject("item").getString("long"));
+            basicInfo.setLatLng(new AstroCalculator.Location(lat, lng));
             basicInfo.setTemperature( Integer.parseInt(info.getJSONObject("item").getJSONObject("condition").getString("temp")));
             basicInfo.setPressure( Double.parseDouble(info.getJSONObject("atmosphere").getString("pressure")));
             basicInfo.setDescription( forecast.getJSONObject(0).getString("text"));

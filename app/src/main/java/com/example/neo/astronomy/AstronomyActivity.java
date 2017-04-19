@@ -19,6 +19,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.astrocalculator.AstroCalculator;
 import com.astrocalculator.AstroDateTime;
+import com.example.neo.astronomy.database.WeatherDbHelper;
 import com.example.neo.astronomy.fragments.AdditionalFragment;
 import com.example.neo.astronomy.fragments.ListWeatherFragment;
 import com.example.neo.astronomy.fragments.LocationFragment;
@@ -26,8 +27,10 @@ import com.example.neo.astronomy.fragments.MoonFragment;
 import com.example.neo.astronomy.fragments.SunFragment;
 import com.example.neo.astronomy.model.WeatherInfo;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -58,11 +61,15 @@ public class AstronomyActivity extends FragmentActivity {
     private Timer initRefreshTimer;
     private boolean wasChange;
 
+    private WeatherDbHelper weatherDbHelper;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_astronomy);
+
+        initDatabase();
 
         initAstronomyCalculator();
         initWeatherInfo();
@@ -73,6 +80,20 @@ public class AstronomyActivity extends FragmentActivity {
             initFragments();
         } else {
             initPageViewer();
+        }
+    }
+
+    private void initDatabase() {
+        weatherDbHelper = new WeatherDbHelper(getBaseContext());
+
+        try {
+            ArrayList<WeatherInfo> old = weatherDbHelper.select(5);
+            for(WeatherInfo w : old) {
+                w.refresh();
+                System.out.println("Wynik array: " + w.printWeather());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -89,6 +110,12 @@ public class AstronomyActivity extends FragmentActivity {
         startInitRefreshTimer();
 
         startTimers();
+    }
+
+    @Override
+    protected void onDestroy() {
+        weatherDbHelper.close();
+        super.onDestroy();
     }
 
     @Override
@@ -375,7 +402,7 @@ public class AstronomyActivity extends FragmentActivity {
     }
 
     private void startClockTimer() {
-        final int CLOCK_REFRESH_MS = 1000;
+        final int CLOCK_REFRESH_MS = 500;
 
         stopTimer(clockTimer);
 
@@ -454,9 +481,15 @@ public class AstronomyActivity extends FragmentActivity {
         weatherInfo.changeLocation(newAstroLocation, locationName);
         weatherInfo.checkWeather(getApplicationContext());
 
+        insertToDatabase(weatherInfo);
+
         refreshLocationFragment();
 
         wasChange = true;
+    }
+
+    private void insertToDatabase(WeatherInfo weatherInfo) {
+        weatherDbHelper.insert(weatherInfo);
     }
 
     private static int NUM_ITEMS = 5;
