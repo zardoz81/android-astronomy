@@ -20,4 +20,9 @@
     <string name="temperature">Temperature:</string>
     <string name="pressure">Pressure:</string>
     <string name="description">Description</string>
+    <string name="title_activity_favourite_location">FavouriteLocationActivity</string>
+    <string name="favourite_locations">Favourite locations</string>
+    <string name="new_location">New location</string>
+    <string name="change">Change</string>
+    <string name="check_new_location">Check new location</string>
 </resources>

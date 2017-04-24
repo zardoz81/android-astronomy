@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.neo.astronomy.AstronomyActivity">
-
+    tools:context="com.example.neo.astronomy.FavouriteLocationActivity">
+<!--
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,16 +20,7 @@
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
-
-    <android.support.v4.view.ViewPager
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/fragmentPager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-
-
-    </android.support.v4.view.ViewPager>
-
-
+-->
+    <include layout="@layout/content_favourite_location" />
 
 </LinearLayout>

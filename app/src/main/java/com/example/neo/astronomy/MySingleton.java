@@ -72,4 +72,8 @@ public class MySingleton {
 
         getInstance(context).addToRequestQueue(jsObjRequest);
     }
+
+    public static String prepareUrl(String name) {
+        return name.replace(" ", "%20");
+    }
 }

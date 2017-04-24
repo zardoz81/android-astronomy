@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.example.neo.astronomy.FavouriteLocationActivity"
+    tools:showIn="@layout/activity_favourite_location">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:textSize="@dimen/main_headline"
+        android:gravity="center"
+        android:textStyle="bold"
+        android:text="@string/favourite_locations"/>
+
+    <ListView
+        android:id="@+id/favouriteList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="8">
+    </ListView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/check_new_location"
+            android:onClick="onClickCheckNewLocation"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:textSize="@dimen/headrow"
+            android:textStyle="bold"
+            android:text="Unit system:"/>
+        <TextView
+            android:id="@+id/unitSystem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="left"
+            android:textSize="@dimen/headrow"
+            android:text="metric"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/change"
+            android:onClick="onClickChangeUnitSystem"/>
+    </LinearLayout>
+
+
+</LinearLayout>

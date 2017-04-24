@@ -1,5 +1,6 @@
 package com.example.neo.astronomy.parser;
 
+import com.astrocalculator.AstroCalculator;
 import com.astrocalculator.AstroDateTime;
 
 public class ParseAstroDate {
@@ -22,5 +23,20 @@ public class ParseAstroDate {
 
     public static String toStringLunar(double age) {
         return String.format("%.3f", age);
+    }
+
+    public static AstroCalculator.Location latlngFromDatabase(String latlng) {
+        String[] splitted = latlng.split(",");
+        double lat = Double.parseDouble(splitted[0]);
+        double lng = Double.parseDouble(splitted[1]);
+        return new AstroCalculator.Location(lat, lng);
+    }
+
+    public static String latlngToDatabase(AstroCalculator.Location latlng) {
+        return latlng.getLatitude() + "," + latlng.getLongitude();
+    }
+
+    public static String prepareName(String newLocation) {
+        return newLocation.replace(" ", "%20");
     }
 }

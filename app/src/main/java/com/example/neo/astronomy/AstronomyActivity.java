@@ -9,6 +9,8 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,7 +27,9 @@ import com.example.neo.astronomy.fragments.ListWeatherFragment;
 import com.example.neo.astronomy.fragments.LocationFragment;
 import com.example.neo.astronomy.fragments.MoonFragment;
 import com.example.neo.astronomy.fragments.SunFragment;
+import com.example.neo.astronomy.model.UnitSystem;
 import com.example.neo.astronomy.model.WeatherInfo;
+import com.example.neo.astronomy.model.YahooLocation;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,11 +40,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class AstronomyActivity extends FragmentActivity {
+public class AstronomyActivity extends AppCompatActivity {
     private ViewPager astronomyPager;
     private PagerAdapter astronomyPagerAdapter;
 
     private boolean isLand = false;
+
+
+    private UnitSystem unitSystem;
+    private YahooLocation yahooLocation;
 
     private LocationFragment locationFragment;
     private SunFragment sunFragment;
@@ -64,10 +72,15 @@ public class AstronomyActivity extends FragmentActivity {
     private WeatherDbHelper weatherDbHelper;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_astronomy);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        loadExtras();
 
         initDatabase();
 
@@ -83,11 +96,19 @@ public class AstronomyActivity extends FragmentActivity {
         }
     }
 
+    private void loadExtras() {
+        yahooLocation = YahooLocation.fromCsv(getIntent().getStringExtra("yahooLocationCSV"));
+        unitSystem = FavouriteLocationActivity.parseUnitSystem(getIntent().getStringExtra("unitSystem"));
+
+        System.out.println("Otrzymalem: " + yahooLocation.getName() + "/" + yahooLocation.getWoeid() + " w " + unitSystem.name());
+
+    }
+
     private void initDatabase() {
         weatherDbHelper = new WeatherDbHelper(getBaseContext());
 
         try {
-            ArrayList<WeatherInfo> old = weatherDbHelper.select(5);
+            ArrayList<WeatherInfo> old = weatherDbHelper.selectWeatherInfo(5);
             for(WeatherInfo w : old) {
                 w.refresh();
                 System.out.println("Wynik array: " + w.printWeather());
@@ -191,7 +212,7 @@ public class AstronomyActivity extends FragmentActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_bar, menu);
+        getMenuInflater().inflate(R.menu.astronomy_menu_bar, menu);
 //        getActionBar().show();
         return true;
     }
@@ -199,7 +220,7 @@ public class AstronomyActivity extends FragmentActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.actionFavorite:
+            case R.id.actionFavourite:
                 System.out.println(weatherInfo.printWeather());
                 break;
             case R.id.changeLocationAction:
@@ -261,7 +282,7 @@ public class AstronomyActivity extends FragmentActivity {
         builder.setTitle("New refresh time(minutes) [Current: " + UPDATE_FRAGMENT_MINUTES + "]");
 
         final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);    //InputType.TYPE_CLASS_TEXT |
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
         builder.setView(input);
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -489,7 +510,7 @@ public class AstronomyActivity extends FragmentActivity {
     }
 
     private void insertToDatabase(WeatherInfo weatherInfo) {
-        weatherDbHelper.insert(weatherInfo);
+        //weatherDbHelper.insert(weatherInfo);
     }
 
     private static int NUM_ITEMS = 5;
