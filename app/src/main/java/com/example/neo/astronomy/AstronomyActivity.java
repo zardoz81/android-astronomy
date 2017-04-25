@@ -1,6 +1,9 @@
 package com.example.neo.astronomy;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -46,7 +49,6 @@ public class AstronomyActivity extends AppCompatActivity {
 
     private boolean isLand = false;
 
-
     private UnitSystem unitSystem;
     private YahooLocation yahooLocation;
 
@@ -56,10 +58,10 @@ public class AstronomyActivity extends AppCompatActivity {
     private AdditionalFragment additionalFragment;
     private ListWeatherFragment listWeatherFragment;
 
-    private final String DEFAULT_LOCATION = "Lodz";
-    private final double DEFAULT_LAT = 51.7592485;
-    private final double DEFAULT_LNG = 19.4559833;
-    private String currentLocation = DEFAULT_LOCATION;
+    //private final String DEFAULT_LOCATION = "Lodz";
+    //private final double DEFAULT_LAT = 51.7592485;
+    //private final double DEFAULT_LNG = 19.4559833;
+    //private String currentLocation = DEFAULT_LOCATION;
     private AstroCalculator astroCalculator;
     private WeatherInfo weatherInfo;
 
@@ -77,6 +79,7 @@ public class AstronomyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_astronomy);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -88,7 +91,6 @@ public class AstronomyActivity extends AppCompatActivity {
         initWeatherInfo();
 
         initOrientation();
-
         if(isLand) {
             initFragments();
         } else {
@@ -96,36 +98,53 @@ public class AstronomyActivity extends AppCompatActivity {
         }
     }
 
+
+
     private void loadExtras() {
-        yahooLocation = YahooLocation.fromCsv(getIntent().getStringExtra("yahooLocationCSV"));
-        unitSystem = FavouriteLocationActivity.parseUnitSystem(getIntent().getStringExtra("unitSystem"));
+        YahooLocation loc = YahooLocation.fromCsv(getIntent().getStringExtra("yahooLocationCSV"));
+        if(loc != null) {
+            yahooLocation = loc;
+        }
 
-        System.out.println("Otrzymalem: " + yahooLocation.getName() + "/" + yahooLocation.getWoeid() + " w " + unitSystem.name());
-
+        UnitSystem sys = FavouriteLocationActivity.parseUnitSystem(getIntent().getStringExtra("unitSystem"));
+        if(sys != null) {
+            unitSystem = sys;
+        }
     }
 
     private void initDatabase() {
         weatherDbHelper = new WeatherDbHelper(getBaseContext());
-
-        try {
-            ArrayList<WeatherInfo> old = weatherDbHelper.selectWeatherInfo(5);
-            for(WeatherInfo w : old) {
-                w.refresh();
-                System.out.println("Wynik array: " + w.printWeather());
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     private void initWeatherInfo() {
-        weatherInfo = new WeatherInfo(currentLocation, astroCalculator.getLocation());
-        weatherInfo.refresh();
+        ArrayList<WeatherInfo> result = weatherDbHelper.selectWeatherInfo(1, yahooLocation.getId());
+        WeatherInfo fromDatabase = result.size() > 0 ? result.get(0) : null;
+        if(fromDatabase == null || (fromDatabase != null && WeatherInfo.timeToRefresh(fromDatabase.getLastTimestamp()))) {
+            if(fromDatabase == null) {
+                weatherInfo = new WeatherInfo(yahooLocation.getName(), yahooLocation.getLatlng());
+            } else {
+                weatherInfo = fromDatabase;
+            }
+
+            if(isOnline()) {
+                weatherInfo.checkWeather(getBaseContext(), yahooLocation.getWoeid());
+            }
+        } else {
+            weatherInfo = fromDatabase;
+            weatherInfo.refresh();
+        }
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
         wasChange = true;
 
         startInitRefreshTimer();
@@ -140,15 +159,31 @@ public class AstronomyActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onPause() {
+        stopTimer(clockTimer);
+        stopTimer(updateFragmentTimer);
+        super.onPause();
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState)
     {
-        outState.putString("location", currentLocation);
-        outState.putDouble("lat", astroCalculator.getLocation().getLatitude());
-        outState.putDouble("lng", astroCalculator.getLocation().getLongitude());
+        outState.putString("yahooLocationCSV", yahooLocation.toCsv());
+        outState.putString("unitSystem", unitSystem.name());
+
         if(weatherInfo.getLastResponse() != null) {
             outState.putString("lastResponse", weatherInfo.getLastResponse().toString());
         }
-
 
         super.onSaveInstanceState(outState);
     }
@@ -158,11 +193,10 @@ public class AstronomyActivity extends AppCompatActivity {
     {
         super.onRestoreInstanceState(savedInstanceState);
 
-        String location = savedInstanceState.getString("location", DEFAULT_LOCATION);
+        yahooLocation = YahooLocation.fromCsv(savedInstanceState.getString("yahooLocationCSV"));
+        unitSystem = FavouriteLocationActivity.parseUnitSystem(savedInstanceState.getString("unitSystem"));
 
-        double lat = savedInstanceState.getDouble("lat", DEFAULT_LAT);
-        double lng = savedInstanceState.getDouble("lng", DEFAULT_LNG);
-        setNewLocation(new AstroCalculator.Location(lat, lng), location);
+        //setNewLocation(new AstroCalculator.Location(lat, lng), location);
 
         try {
             JSONObject lastResponse = new JSONObject(savedInstanceState.getString("lastResponse"));
@@ -221,7 +255,7 @@ public class AstronomyActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.actionFavourite:
-                System.out.println(weatherInfo.printWeather());
+                //favourites dialog
                 break;
             case R.id.changeLocationAction:
                 showToast("Change location selected");
@@ -254,7 +288,7 @@ public class AstronomyActivity extends AppCompatActivity {
 
     private void changeLocation() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("New location [Current: " + currentLocation + "]");
+        builder.setTitle("New location [Current: " + yahooLocation.getName() + "]");
 
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -407,7 +441,7 @@ public class AstronomyActivity extends AppCompatActivity {
 
     private boolean refreshLocationFragment() {
         if(checkFragment(locationFragment)) {
-            locationFragment.refreshLocation(currentLocation);
+            locationFragment.refreshLocation(yahooLocation.getName());
             locationFragment.refreshWeather(weatherInfo.getBasicInfo());
             return true;
         }
@@ -456,7 +490,7 @@ public class AstronomyActivity extends AppCompatActivity {
     }
 
     private boolean checkFragment(Fragment fragment) {
-        return fragment != null;// && fragment.isInLayout();
+        return fragment != null;
     }
 
     private void initOrientation() {
@@ -464,12 +498,11 @@ public class AstronomyActivity extends AppCompatActivity {
     }
 
     private void initAstronomyCalculator() {
-        AstroCalculator.Location DEFAULT_LOCATION_LODZ = new AstroCalculator.Location(DEFAULT_LAT, DEFAULT_LNG);
         Calendar now = Calendar.getInstance();
         int GMT_OFFSET = 2;
         astroCalculator = new AstroCalculator(new AstroDateTime(now.get(Calendar.YEAR),
                 now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH), now.get(Calendar.HOUR_OF_DAY),
-                now.get(Calendar.MINUTE), now.get(Calendar.SECOND), GMT_OFFSET, false), DEFAULT_LOCATION_LODZ);
+                now.get(Calendar.MINUTE), now.get(Calendar.SECOND), GMT_OFFSET, false), yahooLocation.getLatlng());
     }
 
     private void initFragments() {
@@ -477,16 +510,9 @@ public class AstronomyActivity extends AppCompatActivity {
         sunFragment = (SunFragment) getSupportFragmentManager().findFragmentById(R.id.sunFragment);
         moonFragment = (MoonFragment) getSupportFragmentManager().findFragmentById(R.id.moonFragment);
 
-        refreshClockTime();
-        refreshSunFragment();
-        refreshMoonFragment();
-    }
-
-    @Override
-    public void onPause() {
-        stopTimer(clockTimer);
-        stopTimer(updateFragmentTimer);
-        super.onPause();
+        //refreshClockTime();
+        //refreshSunFragment();
+        //refreshMoonFragment();
     }
 
     private void stopTimer(Timer timer) {
@@ -497,7 +523,7 @@ public class AstronomyActivity extends AppCompatActivity {
 
     public void setNewLocation(AstroCalculator.Location newAstroLocation, String locationName) {
         astroCalculator.setLocation(newAstroLocation);
-        currentLocation = locationName;
+        //currentLocation = locationName;
 
         weatherInfo.changeLocation(newAstroLocation, locationName);
         weatherInfo.checkWeather(getApplicationContext());

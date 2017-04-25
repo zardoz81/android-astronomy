@@ -87,6 +87,38 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
         WeatherContract.WeatherInfoTable.COLUMN_NAME_RESPONSE
     };
 
+    public ArrayList<WeatherInfo> selectWeatherInfo(int howMany, long locationId) {
+        String select = "select * from " + WeatherContract.WeatherInfoTable.TABLE_NAME + " where "
+                + WeatherContract.WeatherInfoTable.COLUMN_NAME_LOCATION_ID + " = "
+                + locationId + " order by " + WeatherContract.WeatherInfoTable._ID + " desc limit " + howMany;
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.rawQuery(select, null);
+
+        ArrayList<WeatherInfo> result =  new ArrayList<>();
+        if(c.moveToFirst()) {
+            do {
+                JSONObject response = null;
+                try {
+                    WeatherInfo weatherInfo = new WeatherInfo();
+                    weatherInfo.setLastTimestamp(Long.parseLong(c.getString(c.getColumnIndex(WeatherContract.WeatherInfoTable.COLUMN_NAME_TIMESTAMP))));
+
+                    response = new JSONObject(c.getString(c.getColumnIndex(WeatherContract.WeatherInfoTable.COLUMN_NAME_RESPONSE)));
+                    weatherInfo.setLastResponse(response);
+
+                    result.add(weatherInfo);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            } while(c.moveToNext());
+        }
+
+        c.close();
+        db.close();
+
+        return result;
+    }
+
     public ArrayList<WeatherInfo> selectWeatherInfo(int howMany) throws JSONException {
         SQLiteDatabase db = getReadableDatabase();
 

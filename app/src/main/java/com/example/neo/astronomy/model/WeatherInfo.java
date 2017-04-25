@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class WeatherInfo {
-    private final int REFRESH_TIMESTAMP = 60 * 60;  //1 HOUR // 60 minutes * 60 seconds
+    private static final int REFRESH_TIMESTAMP = 60 * 60;  //1 HOUR // 60 minutes * 60 seconds
 
     private BasicInfo basicInfo;
     private AdditionalInfo additionalInfo;
@@ -93,17 +93,33 @@ public class WeatherInfo {
     }
 
     public void checkWeather(Context context) {
-        if(wasChangeLocation || timeToRefresh()) {
+        if(wasChangeLocation || timeToRefresh(lastTimestamp)) {
             sendResponse(context);
         }
     }
 
-    private boolean timeToRefresh() {
-        return System.currentTimeMillis() - lastTimestamp >= REFRESH_TIMESTAMP;
+    public void checkWeather(Context context, int woeid) {
+        sendResponse(context, woeid);
+    }
+
+    public static boolean timeToRefresh(long timestamp) {
+        return System.currentTimeMillis() - timestamp >= REFRESH_TIMESTAMP;
+    }
+
+    private void sendResponse(Context context, int woeid) {
+        String url = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20%3D%20"
+                + woeid + "&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
+        sendResponse(context, url);
     }
 
     private void sendResponse(Context context) {
-        String url = getUrl(context);
+        sendResponse(context, null);
+    }
+
+    private void sendResponse(Context context, String url) {
+        if(url == null) {
+            url = getUrl(context);
+        }
         Response.Listener<JSONObject> responseAction = new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
