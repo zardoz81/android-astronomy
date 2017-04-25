@@ -13,6 +13,7 @@ import com.example.neo.astronomy.parser.ParseWeatherInfo;
 
 
 public class AdditionalFragment extends Fragment {
+    private WeatherInfo.AdditionalInfo additionalInfo;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -21,7 +22,18 @@ public class AdditionalFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_additional, container, false);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if(additionalInfo != null) {
+            refreshData(additionalInfo);
+        }
+    }
+
     public void refreshData(WeatherInfo.AdditionalInfo additionalInfo) {
+        this.additionalInfo = additionalInfo;
+
         boolean isEuropean = true;
         setText(R.id.windPower, ParseWeatherInfo.toWindPower(additionalInfo.getWindPower(), isEuropean));
         setText(R.id.windDirection, ParseWeatherInfo.toWindDirection(additionalInfo.getWindDirection()));

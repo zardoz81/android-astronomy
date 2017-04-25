@@ -17,7 +17,8 @@ import java.util.Calendar;
 
 
 public class LocationFragment extends Fragment {
-
+    private String locationName;
+    private WeatherInfo.BasicInfo basicInfo;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -26,15 +27,31 @@ public class LocationFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_location, container, false);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if(locationName != null) {
+            refreshLocation(locationName);
+        }
+        if(basicInfo != null) {
+            refreshWeather(basicInfo);
+        }
+    }
+
     public void refreshTime() {
         setText(R.id.currentTime, new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime()));
     }
 
     public void refreshLocation(String locationName) {
+        this.locationName = locationName;
+
         setText(R.id.location, locationName);
     }
 
     public void refreshWeather(WeatherInfo.BasicInfo basicInfo) {
+        this.basicInfo = basicInfo;
+
         final String DEGREE  = "\u00b0";
         boolean isEuropean = true;
         setText(R.id.coordinates, ParseWeatherInfo.toCoordinates(basicInfo.getLatLng()));

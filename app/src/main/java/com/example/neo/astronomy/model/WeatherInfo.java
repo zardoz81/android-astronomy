@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class WeatherInfo {
-    private static final int REFRESH_TIMESTAMP = 60 * 60;  //1 HOUR // 60 minutes * 60 seconds
+    private static final int REFRESH_TIMESTAMP = 60 * 60 * 1000;  //1 HOUR // 60 minutes * 60 seconds * 1000ms because timestamp is in milliseconds
 
     private BasicInfo basicInfo;
     private AdditionalInfo additionalInfo;
@@ -109,18 +109,18 @@ public class WeatherInfo {
     private void sendResponse(Context context, int woeid) {
         String url = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20%3D%20"
                 + woeid + "&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
-        sendResponse(context, url);
+        sendResponse(context, url, null);
     }
 
     private void sendResponse(Context context) {
-        sendResponse(context, null);
+        sendResponse(context, null, null);
     }
 
-    private void sendResponse(Context context, String url) {
+    public void sendResponse(Context context, String url, Response.Listener<JSONObject> responseListener) {
         if(url == null) {
             url = getUrl(context);
         }
-        Response.Listener<JSONObject> responseAction = new Response.Listener<JSONObject>() {
+        Response.Listener<JSONObject> responseAction = responseListener != null ? responseListener : new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 if(useYahoo) {
@@ -140,7 +140,7 @@ public class WeatherInfo {
         MySingleton.sendRequest(url, responseAction, errorAction, context);
     }
 
-    private void parseWeatherInfoByYahoo(JSONObject response) {
+    public void parseWeatherInfoByYahoo(JSONObject response) {
         try {
             //System.out.println("Otrzymany response: " + response.getJSONObject("query").getJSONObject("results").getJSONObject("channel").getJSONObject("item").getJSONArray("forecast").toString(2));
 

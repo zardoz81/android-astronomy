@@ -13,6 +13,7 @@ import com.example.neo.astronomy.R;
 
 
 public class MoonFragment extends Fragment {
+    private AstroCalculator.MoonInfo moonInfo;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -21,7 +22,18 @@ public class MoonFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_moon, container, false);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if(moonInfo != null) {
+            refresh(moonInfo);
+        }
+    }
+
     public void refresh(AstroCalculator.MoonInfo moonInfo) {
+        this.moonInfo = moonInfo;
+
         final String PERCENT  = "%";
         setText(R.id.moonMoonriseTime, ParseAstroDate.toStringTime(moonInfo.getMoonrise()));
         setText(R.id.moonMoonsetTime, ParseAstroDate.toStringTime(moonInfo.getMoonset()));

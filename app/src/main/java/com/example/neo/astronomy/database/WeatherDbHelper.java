@@ -46,8 +46,26 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
+    public void insertOrUpdate(WeatherInfo weatherInfo, long locationId) {
+        SQLiteDatabase db = getWritableDatabase();
 
-    public void insert(WeatherInfo weatherInfo, int locationId) {
+        ContentValues value = new ContentValues();
+        value.put(WeatherContract.WeatherInfoTable.COLUMN_NAME_TIMESTAMP, weatherInfo.getLastTimestamp());
+        value.put(WeatherContract.WeatherInfoTable.COLUMN_NAME_LOCATION_ID, locationId);
+        JSONObject response = weatherInfo.getLastResponse();
+        if(response != null) {
+            value.put(WeatherContract.WeatherInfoTable.COLUMN_NAME_RESPONSE, response.toString());
+        } else {
+            return;
+        }
+
+        long row = db.update(WeatherContract.WeatherInfoTable.TABLE_NAME, value, WeatherContract.WeatherInfoTable.COLUMN_NAME_LOCATION_ID + "=" + locationId, null);
+        if(row <= 0) {
+            insert(weatherInfo, locationId);
+        }
+    }
+
+    public void insert(WeatherInfo weatherInfo, long locationId) {
         SQLiteDatabase db = getWritableDatabase();
 
         ContentValues value = new ContentValues();
@@ -100,9 +118,9 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                 JSONObject response = null;
                 try {
                     WeatherInfo weatherInfo = new WeatherInfo();
-                    weatherInfo.setLastTimestamp(Long.parseLong(c.getString(c.getColumnIndex(WeatherContract.WeatherInfoTable.COLUMN_NAME_TIMESTAMP))));
+                    weatherInfo.setLastTimestamp(Long.parseLong(c.getString(1)));
 
-                    response = new JSONObject(c.getString(c.getColumnIndex(WeatherContract.WeatherInfoTable.COLUMN_NAME_RESPONSE)));
+                    response = new JSONObject(c.getString(2));
                     weatherInfo.setLastResponse(response);
 
                     result.add(weatherInfo);

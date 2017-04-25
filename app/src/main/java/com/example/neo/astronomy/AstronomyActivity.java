@@ -2,6 +2,7 @@ package com.example.neo.astronomy;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.DataSetObserver;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.app.Fragment;
@@ -17,6 +18,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -127,12 +129,34 @@ public class AstronomyActivity extends AppCompatActivity {
             }
 
             if(isOnline()) {
-                weatherInfo.checkWeather(getBaseContext(), yahooLocation.getWoeid());
+                checkWeatherByYahoo();
+                showToast("Checking from yahoo");
+            } else {
+                weatherInfo.refresh();
+                showToast("No internet access. Old values are shown.");
             }
         } else {
             weatherInfo = fromDatabase;
             weatherInfo.refresh();
+            showToast("Forecast taken from database");
         }
+    }
+
+    private void checkWeatherByYahoo() {
+        Response.Listener<JSONObject> responseListener = new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                weatherInfo.parseWeatherInfoByYahoo(response);
+                refreshLocationFragment();
+                refreshAdditionalFragment();
+                weatherDbHelper.insertOrUpdate(weatherInfo, yahooLocation.getId());
+            }
+        };
+
+        String url = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20%3D%20"
+                + yahooLocation.getWoeid() + "&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
+
+        weatherInfo.sendResponse(getBaseContext(), url, responseListener);
     }
 
     private boolean isOnline() {
@@ -147,7 +171,7 @@ public class AstronomyActivity extends AppCompatActivity {
 
         wasChange = true;
 
-        startInitRefreshTimer();
+        //startInitRefreshTimer();
 
         startTimers();
     }
@@ -227,8 +251,8 @@ public class AstronomyActivity extends AppCompatActivity {
                             boolean locationResult = refreshLocationFragment();
                             boolean additionalFragment = isLand || refreshAdditionalFragment();
                             if(timeResult && sunResult && moonResult && locationResult && additionalFragment) {
-                                System.out.println("Zmiana wasChange");
                                 wasChange = false;
+                                showToast("Zmiana wasChange");
                             }
                         }
                     }
@@ -267,12 +291,16 @@ public class AstronomyActivity extends AppCompatActivity {
                 changeRefreshFragmentTime();
                 break;
             case R.id.refreshAction:
-                showToast("Refresh selected");
+                wasChange = true;
+                /*
                 refreshSunFragment();
                 refreshMoonFragment();
                 refreshLocationFragment();
                 refreshAdditionalFragment();
                 listWeatherFragment.refresh(weatherInfo.getLongtermData());
+                */
+                //startInitRefreshTimer();
+                showToast("Refreshed");
                 //listWeatherFragment.refresh(new WeatherInfo.LongtermInfo("Czwartek", "27 Apr 2017", "17", "29", "Sunny"));
                 break;
             default:
@@ -549,38 +577,44 @@ public class AstronomyActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            wasChange = true;
+            //wasChange = true;
 
             switch (position) {
                 case 0:
                     if(locationFragment == null) {
                         System.out.println("Tworze locationFragment");
                         locationFragment = new LocationFragment();
+
                     }
+                    refreshLocationFragment();
                     return locationFragment;
                 case 1:
                     if(additionalFragment == null) {
                         System.out.println("Tworze additionalFragment");
                         additionalFragment = new AdditionalFragment();
                     }
+                    refreshAdditionalFragment();
                     return additionalFragment;
                 case 2:
                     if(listWeatherFragment == null) {
                         System.out.println("Tworze listWeatherFragment");
                         listWeatherFragment = new ListWeatherFragment();
                     }
+                    refreshListWeatherFragment();
                     return listWeatherFragment;
                 case 3:
                     if(sunFragment == null) {
                         System.out.println("Tworze sunFragment");
                         sunFragment = new SunFragment();
                     }
+                    refreshSunFragment();
                     return sunFragment;
                 case 4:
                     if(moonFragment == null) {
                         System.out.println("Tworze moonFragment");
                         moonFragment = new MoonFragment();
                     }
+                    refreshMoonFragment();
                     return moonFragment;
                 default:
                     wasChange = false;
@@ -589,8 +623,34 @@ public class AstronomyActivity extends AppCompatActivity {
         }
 
         @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            return super.instantiateItem(container, position);
+        }
+
+        @Override
+        public void startUpdate(ViewGroup container) {
+            super.startUpdate(container);
+        }
+
+        @Override
+        public void finishUpdate(ViewGroup container) {
+            super.finishUpdate(container);
+        }
+
+        @Override
+        public void registerDataSetObserver(DataSetObserver observer) {
+            super.registerDataSetObserver(observer);
+        }
+
+        @Override
         public int getCount() {
             return NUM_ITEMS;
+        }
+    }
+
+    private void refreshListWeatherFragment() {
+        if(checkFragment(listWeatherFragment)) {
+            listWeatherFragment.refresh(weatherInfo.getLongtermData(), getBaseContext());
         }
     }
 }

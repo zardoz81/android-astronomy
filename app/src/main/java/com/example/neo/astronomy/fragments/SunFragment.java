@@ -13,6 +13,7 @@ import com.example.neo.astronomy.R;
 
 
 public class SunFragment extends Fragment {
+    private AstroCalculator.SunInfo sunInfo;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -21,7 +22,18 @@ public class SunFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_sun, container, false);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if(sunInfo != null) {
+            refresh(sunInfo);
+        }
+    }
+
     public void refresh(AstroCalculator.SunInfo sunInfo) {
+        this.sunInfo = sunInfo;
+
         final String DEGREE  = "\u00b0";
         setText(R.id.sunSunriseTime, ParseAstroDate.toStringTime(sunInfo.getSunrise()));
         setText(R.id.sunSunriseAzimuth, ParseAstroDate.toStringAzimuth(sunInfo.getAzimuthRise()) + DEGREE);

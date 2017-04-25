@@ -1,5 +1,6 @@
 package com.example.neo.astronomy.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
@@ -29,20 +30,21 @@ public class ListWeatherFragment extends ListFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        longtermData = new ArrayList<>();
+        //longtermData = new ArrayList<>();
 
         //longtermData.add(new WeatherInfo.LongtermInfo("Tue", "25 Apr 2017", "15", "29", "Sunny"));
         //longtermData.add(new WeatherInfo.LongtermInfo("Wen", "26 Apr 2017", "18", "27", "Sunny"));
 
         //adapter = new LongtermWeatherAdapter(longtermData, getContext());
         //setListAdapter(adapter);
-        refresh(longtermData);
+        //refresh(longtermData, getContext());
     }
 
-    public void refresh(ArrayList<WeatherInfo.LongtermInfo> longtermData) {
+    public void refresh(ArrayList<WeatherInfo.LongtermInfo> longtermData, Context c) {
         this.longtermData = longtermData;
 
-        adapter = new LongtermWeatherAdapter(longtermData, getContext());
+        //adapter = new LongtermWeatherAdapter(longtermData, getContext());
+        adapter = new LongtermWeatherAdapter(longtermData, c);
         setListAdapter(adapter);
     }
 }
