@@ -117,10 +117,8 @@ public class FavouriteLocationActivity extends AppCompatActivity {
     public void onClickChangeUnitSystem(View view) {
         final View inflator = layoutInflater.inflate(R.layout.change_unit_dialog, null);
 
-        //final RadioButton radioMetric = (RadioButton) inflator.findViewById(R.id.radioMetic);
-        //final RadioButton radioImperial = (RadioButton) inflator.findViewById(R.id.radioImperial);
-
         final RadioGroup radioGroup = (RadioGroup) inflator.findViewById(R.id.unitRadioGroup);
+        radioGroup.check(unitSystem == UnitSystem.METRIC ? R.id.radioMetic : R.id.radioImperial);
 
         DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
             @Override

@@ -35,6 +35,8 @@ import com.example.neo.astronomy.fragments.SunFragment;
 import com.example.neo.astronomy.model.UnitSystem;
 import com.example.neo.astronomy.model.WeatherInfo;
 import com.example.neo.astronomy.model.YahooLocation;
+import com.example.neo.astronomy.parser.ParseAstroDate;
+import com.example.neo.astronomy.parser.ParseWeatherInfo;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -111,6 +113,7 @@ public class AstronomyActivity extends AppCompatActivity {
         UnitSystem sys = FavouriteLocationActivity.parseUnitSystem(getIntent().getStringExtra("unitSystem"));
         if(sys != null) {
             unitSystem = sys;
+            ParseWeatherInfo.setUnitSystem(unitSystem);
         }
     }
 
@@ -133,7 +136,11 @@ public class AstronomyActivity extends AppCompatActivity {
                 showToast("Checking from yahoo");
             } else {
                 weatherInfo.refresh();
-                showToast("No internet access. Old values are shown.");
+                if(fromDatabase == null) {
+                    showToast("No internet access.");
+                } else {
+                    showToast("No internet access. Old values are shown.");
+                }
             }
         } else {
             weatherInfo = fromDatabase;
@@ -277,37 +284,66 @@ public class AstronomyActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        ViewPager v = (ViewPager) findViewById(R.id.fragmentPager);
         switch (item.getItemId()) {
-            case R.id.actionFavourite:
-                //favourites dialog
-                break;
             case R.id.changeLocationAction:
                 showToast("Change location selected");
                 changeLocation();
-
                 break;
             case R.id.changeRefreshFragmentTimeAction:
                 showToast("Change refresh time selected");
                 changeRefreshFragmentTime();
                 break;
+            case R.id.changeUnitSystem:
+                changeUnitSystem();
+                //refreshFragment(v.getCurrentItem());
+                refreshAll();
+                break;
             case R.id.refreshAction:
                 wasChange = true;
-                /*
-                refreshSunFragment();
-                refreshMoonFragment();
-                refreshLocationFragment();
-                refreshAdditionalFragment();
-                listWeatherFragment.refresh(weatherInfo.getLongtermData());
-                */
-                //startInitRefreshTimer();
+                //refreshFragment(v.getCurrentItem());
+                refreshAll();
                 showToast("Refreshed");
-                //listWeatherFragment.refresh(new WeatherInfo.LongtermInfo("Czwartek", "27 Apr 2017", "17", "29", "Sunny"));
                 break;
             default:
                 break;
         }
 
         return true;
+    }
+
+    private void refreshAll() {
+        //refreshSunFragment();
+        //refreshMoonFragment();
+        refreshLocationFragment();
+        refreshAdditionalFragment();
+        refreshListWeatherFragment();
+    }
+
+    private void refreshFragment(int currentItem) {
+        switch(currentItem) {
+            case 0:
+                refreshLocationFragment();
+                break;
+            case 1:
+                refreshAdditionalFragment();
+                break;
+            case 2:
+                refreshListWeatherFragment();
+                break;
+            case 3:
+                refreshSunFragment();
+                break;
+            case 4:
+                refreshMoonFragment();
+                break;
+
+        }
+    }
+
+    private void changeUnitSystem() {
+        unitSystem = unitSystem == UnitSystem.METRIC ? UnitSystem.IMPERIAL : UnitSystem.METRIC;
+        ParseWeatherInfo.setUnitSystem(unitSystem);
     }
 
     private void showToast(String text) {
@@ -368,12 +404,70 @@ public class AstronomyActivity extends AppCompatActivity {
         try {
             int newTimeInt = Integer.parseInt(newTime);
             UPDATE_FRAGMENT_MINUTES = newTimeInt;
+            stopTimer(updateFragmentTimer);
+            startUpdateFragmentTimer();
             showToast("Successful changed refresh time");
         } catch(Exception exc) {
             showToast(exc.getMessage());
         }
     }
 
+    private void locationChangeProcess(final String newLocation) {
+        if(isOnline()) {
+            String url = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20geo.places(1)" +
+                    "%20where%20text%3D%22" + ParseAstroDate.prepareName(newLocation) + "%22&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
+
+            Response.Listener<JSONObject> responseAction = new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    try {
+                        JSONObject query = response.getJSONObject("query");
+                        if(query.getInt("count") > 0) {
+                            JSONObject place = query.getJSONObject("results").getJSONObject("place");
+                            final int DEFAULT_NO_INFO = -1;
+                            String name = place.getString("name");
+                            String woeid = place.getString("woeid");
+                            double lat = Double.parseDouble(place.getJSONObject("centroid").getString("latitude"));
+                            double lng = Double.parseDouble(place.getJSONObject("centroid").getString("longitude"));
+
+                            YahooLocation location = new YahooLocation(name, Integer.parseInt(woeid), new AstroCalculator.Location(lat ,lng));
+
+                            //sprawdza po woeid czy jest w bazie
+                            ArrayList<YahooLocation> result = weatherDbHelper.selectYahooLocation(location.getWoeid());
+                            if(result.size() == 0 ) {
+                                long rowId = weatherDbHelper.insert(location, 0);
+                                location.setId(rowId);
+                            } else { //jest wiec tylko pobiera rowId
+                                location = result.get(0);
+                            }
+                            yahooLocation = location;
+                            initWeatherInfo();
+                            initAstronomyCalculator();
+                            refreshAll();
+                        } else {
+                            showToast("Error. Check location name.");
+                        }
+                    } catch(Exception exc) {
+                        showToast(exc.getMessage());
+                    }
+                }
+            };
+
+
+            Response.ErrorListener errorAction = new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    showToast("Return error. Check internet access.");
+                }
+            };
+
+            MySingleton.sendRequest(url, responseAction, errorAction, getApplicationContext());
+        } else {
+            showToast("No internet access.");
+        }
+    }
+
+/*
     private void locationChangeProcess(final String newLocation) {
         String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + prepareNameLocation(newLocation) +
                 "&key=" + getResources().getString(R.string.googleKey);
@@ -404,7 +498,7 @@ public class AstronomyActivity extends AppCompatActivity {
 
         MySingleton.sendRequest(url, responseAction, errorAction, getApplicationContext());
     }
-
+*/
 
 
     private String prepareNameLocation(String newLocation) {
@@ -575,10 +669,10 @@ public class AstronomyActivity extends AppCompatActivity {
             super(fm);
         }
 
+
         @Override
         public Fragment getItem(int position) {
             //wasChange = true;
-
             switch (position) {
                 case 0:
                     if(locationFragment == null) {

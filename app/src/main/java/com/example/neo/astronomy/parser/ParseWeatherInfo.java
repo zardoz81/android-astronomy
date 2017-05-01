@@ -1,6 +1,7 @@
 package com.example.neo.astronomy.parser;
 
 import com.astrocalculator.AstroCalculator;
+import com.example.neo.astronomy.model.UnitSystem;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,19 +9,34 @@ import java.util.Map;
 public class ParseWeatherInfo {
     static final String PERCENT = "%";
     static final String DEGREE  = "\u00b0";
+    public static UnitSystem unitSystem;
+
+    public static void setUnitSystem(UnitSystem unitSystem) {
+        ParseWeatherInfo.unitSystem = unitSystem;
+    }
+
+    public static boolean isMetric() {
+        return unitSystem == UnitSystem.METRIC;
+    }
 
     public static String toCoordinates(AstroCalculator.Location location) {
+        if(location == null) {
+            return "";
+        }
         return String.format("%.4f,%.4f", location.getLatitude(), location.getLongitude());
     }
 
-    public static String toPressure(double pressure, boolean european) {
+    public static String toPressure(double pressure) {
         //
-        final String unit = european ? "hPa" : "mbar";
+        final String unit = "hPa";
         return String.format("%.2f%s", pressure, unit);
     }
 
     public static String toWindPower(double windPower, boolean european) {
-        final String unit = european ? "KPH" : "MPH";
+        final String unit = isMetric() ? "KPH" : "MPH";
+        if(isMetric()) {
+            windPower = windPower * 1.609344;
+        }
         return String.format("%.2f%s", windPower, unit);
     }
 
@@ -29,7 +45,10 @@ public class ParseWeatherInfo {
     }
 
     public static String toVisibility(double visibility, boolean european) {
-        final String unit = european ? "KPH" : "MPH";
+        final String unit = isMetric() ? "KM" : "MI";
+        if(isMetric()) {
+            visibility *= 1.609344;
+        }
         return String.format("%.2f%s", visibility, unit);
     }
 
@@ -38,25 +57,46 @@ public class ParseWeatherInfo {
     }
 
     public static String toTempRow(String lowTemp, String highTemp) {
-        return String.format("%s%s-%s%s", lowTemp, DEGREE, highTemp, DEGREE);
+        String TEMP_UNIT = isMetric() ? "C" : "F";
+        if(isMetric()) {
+            lowTemp = Integer.toString(toCelc(Integer.parseInt(lowTemp)));
+            highTemp = Integer.toString(toCelc(Integer.parseInt(highTemp)));
+        }
+        return String.format("%s%s-%s%s%s", lowTemp, DEGREE, highTemp, DEGREE, TEMP_UNIT);
+    }
+
+    private static int toCelc(int i) {
+        return (int)((i - 32) * (5.0 / 9.0));
     }
 
     public static String toWindDirection(String shortDir) {
-        if(shortDir == null) {
+        int dir;
+        try {
+            dir = Integer.parseInt(shortDir);
+        } catch(Exception e) {
             return "";
         }
-        Map<String, String> directionsMap = new HashMap<String, String>();
-        directionsMap.put("S", "South");
-        directionsMap.put("N", "North");
-        directionsMap.put("W", "West");
-        directionsMap.put("E", "East");
-        StringBuilder result = new StringBuilder();
-        for(String key: directionsMap.keySet()) {
-            if(shortDir.contains(key)) {
-                result.append(directionsMap.get(key) + " ");
+        String[] dirs = {"N", "E", "S", "W"};
+        String result = "";
+        for(int i = 0; i < 8; i++) {
+            if(dir < (i+1)*45) {
+                int k = i / 2;
+                if(i % 2 == 0) {
+                    result += dirs[k];
+                } else {
+                    result = dirs[k-1] + dirs[k];
+                }
+                break;
             }
         }
-        return result.toString();
+        return result;
     }
 
+    public static String toTemperature(int temperature) {
+        final String unit = isMetric() ? "C" : "F";
+        if(isMetric() && temperature != 0) {
+            temperature = toCelc(temperature);
+        }
+        return String.format("%s%s%s", Integer.toString(temperature), DEGREE, unit);
+    }
 }

@@ -52,11 +52,9 @@ public class LocationFragment extends Fragment {
     public void refreshWeather(WeatherInfo.BasicInfo basicInfo) {
         this.basicInfo = basicInfo;
 
-        final String DEGREE  = "\u00b0";
-        boolean isEuropean = true;
         setText(R.id.coordinates, ParseWeatherInfo.toCoordinates(basicInfo.getLatLng()));
-        setText(R.id.temperature, basicInfo.getTemperature() + DEGREE);
-        setText(R.id.pressure, ParseWeatherInfo.toPressure(basicInfo.getPressure(), isEuropean));
+        setText(R.id.temperature, ParseWeatherInfo.toTemperature(basicInfo.getTemperature()));
+        setText(R.id.pressure, ParseWeatherInfo.toPressure(basicInfo.getPressure()));
         setText(R.id.description, basicInfo.getDescription());
     }
 

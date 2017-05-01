@@ -29,7 +29,7 @@
         android:title="Refresh"
         app:showAsAction="never"
         />
-
+<!--
     <item
         android:id="@+id/actionFavourite"
         android:orderInCategory="1"
@@ -37,5 +37,5 @@
         android:icon="@drawable/star_action"
         app:showAsAction="never"
         />
-
+-->
 </menu>
