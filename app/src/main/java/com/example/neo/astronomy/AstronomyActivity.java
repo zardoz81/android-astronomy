@@ -313,8 +313,8 @@ public class AstronomyActivity extends AppCompatActivity {
     }
 
     private void refreshAll() {
-        //refreshSunFragment();
-        //refreshMoonFragment();
+        refreshSunFragment();
+        refreshMoonFragment();
         refreshLocationFragment();
         refreshAdditionalFragment();
         refreshListWeatherFragment();
@@ -442,7 +442,8 @@ public class AstronomyActivity extends AppCompatActivity {
                             }
                             yahooLocation = location;
                             initWeatherInfo();
-                            initAstronomyCalculator();
+                            astroCalculator.setLocation(yahooLocation.getLatlng());
+                            weatherDbHelper.insertOrUpdate(weatherInfo, location.getId());
                             refreshAll();
                         } else {
                             showToast("Error. Check location name.");
@@ -632,9 +633,9 @@ public class AstronomyActivity extends AppCompatActivity {
         sunFragment = (SunFragment) getSupportFragmentManager().findFragmentById(R.id.sunFragment);
         moonFragment = (MoonFragment) getSupportFragmentManager().findFragmentById(R.id.moonFragment);
 
-        //refreshClockTime();
-        //refreshSunFragment();
-        //refreshMoonFragment();
+        refreshClockTime();
+        refreshSunFragment();
+        refreshMoonFragment();
     }
 
     private void stopTimer(Timer timer) {

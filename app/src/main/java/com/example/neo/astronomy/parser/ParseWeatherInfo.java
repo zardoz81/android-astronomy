@@ -84,7 +84,7 @@ public class ParseWeatherInfo {
                 if(i % 2 == 0) {
                     result += dirs[k];
                 } else {
-                    result = dirs[k-1] + dirs[k];
+                    result = dirs[k] + dirs[(k+1) % 4];
                 }
                 break;
             }
